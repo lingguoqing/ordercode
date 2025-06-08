@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.example.controller.MainController"
+      spacing="10">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Welcome to JavaFX Demo Application" style="-fx-font-size: 20px;"/>
+    
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Enter your name:"/>
+        <TextField fx:id="nameField" prefWidth="200"/>
+        <Button text="Greet" onAction="#handleGreetButton"/>
+    </HBox>
+    
+    <TextArea fx:id="outputArea" VBox.vgrow="ALWAYS" editable="false"/>
+    
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Clear" onAction="#handleClearButton"/>
+        <Button text="Exit" onAction="#handleExitButton"/>
+    </HBox>
+</VBox> 

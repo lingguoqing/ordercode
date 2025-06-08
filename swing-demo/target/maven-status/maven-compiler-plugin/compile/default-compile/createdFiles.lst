@@ -1,0 +1,9 @@
+com\example\entity\User.class
+com\example\controller\LoginController.class
+com\example\config\MybatisPlusConfig.class
+com\example\util\DatabaseUtil.class
+com\example\MainApp.class
+com\example\controller\PersonalityAnalysisController.class
+com\example\controller\MainController.class
+com\example\mapper\UserMapper.class
+com\example\controller\RegisterController.class
