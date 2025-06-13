@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>图书管理系统 - 登录</title>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
@@ -47,6 +47,6 @@
         </div>
     </div>
     
-    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

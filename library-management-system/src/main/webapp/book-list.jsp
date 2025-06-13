@@ -16,7 +16,7 @@
 <head>
     <meta charset="UTF-8">
     <title>图书管理系统 - 图书列表</title>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-4">
@@ -24,7 +24,8 @@
             <h2>图书列表</h2>
             <div>
                 <span class="me-3">欢迎，<%= session.getAttribute("user") != null ? ((User)session.getAttribute("user")).getUsername() : "" %></span>
-                <a href="logout.jsp" class="btn btn-outline-danger">退出登录</a>
+                <a href="edit-profile.jsp" class="btn btn-outline-primary me-2">修改个人信息</a>
+                <a href="confirm-logout.jsp" class="btn btn-outline-danger">退出登录</a>
             </div>
         </div>
         
@@ -109,6 +110,6 @@
         </table>
     </div>
     
-    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/bootstrap.bundle.min.js"></script>
 </body>
 </html> 
