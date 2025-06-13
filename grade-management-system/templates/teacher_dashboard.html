@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">个人信息</a>
+            <a href="#courses" class="list-group-item list-group-item-action" data-bs-toggle="list">课程管理</a>
+            <a href="#grades" class="list-group-item list-group-item-action" data-bs-toggle="list">成绩管理</a>
+            <a href="#students" class="list-group-item list-group-item-action" data-bs-toggle="list">学生管理</a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="profile">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>个人信息</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            编辑信息
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>用户名：</strong> {{ current_user.username }}</p>
+                        <p><strong>姓名：</strong> {{ current_user.name }}</p>
+                        <p><strong>邮箱：</strong> {{ current_user.email }}</p>
+                        <p><strong>角色：</strong> 教师</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="courses">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>我的课程</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>课程名称</th>
+                                    <th>学生数量</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr data-course-id="{{ course.id }}">
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.students|length }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info view-course-details-btn">查看详情</button>
+                                        <button class="btn btn-sm btn-warning edit-teacher-course-btn" data-bs-toggle="modal" data-bs-target="#editTeacherCourseModal">编辑</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="grades">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>成绩管理</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGradeModal">
+                            添加成绩
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select class="form-select" id="courseFilter">
+                                <option value="">所有课程</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>学生</th>
+                                    <th>课程</th>
+                                    <th>成绩</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in grades %}
+                                <tr>
+                                    <td>{{ grade.student.name }}</td>
+                                    <td>{{ grade.course.name }}</td>
+                                    <td>{{ grade.score }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning">编辑</button>
+                                        <button class="btn btn-sm btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="students">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>学生管理</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select class="form-select" id="courseFilter">
+                                <option value="">所有课程</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>姓名</th>
+                                    <th>邮箱</th>
+                                    <th>课程</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr data-student-id="{{ student.id }}">
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.email }}</td>
+                                    <td>
+                                        {% for course in student.courses %}
+                                        <span class="badge bg-primary">{{ course.name }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info view-student-grades-btn">查看成绩</button>
+                                        <button class="btn btn-sm btn-primary generate-report-btn">生成成绩单</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑个人信息模态框 -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑个人信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label class="form-label">姓名</label>
+                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">新密码</label>
+                        <input type="password" class="form-control" name="new_password">
+                        <small class="text-muted">如果不修改密码，请留空</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveProfileBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑课程模态框 (教师专用) -->
+<div class="modal fade" id="editTeacherCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑课程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTeacherCourseForm">
+                    <input type="hidden" name="id" id="editTeacherCourseId">
+                    <div class="mb-3">
+                        <label class="form-label">课程名称</label>
+                        <input type="text" class="form-control" name="name" id="editTeacherCourseName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedTeacherCourseBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加成绩模态框 -->
+<div class="modal fade" id="addGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加成绩</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGradeForm">
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" required>
+                            <option value="">选择课程</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">学生</label>
+                        <select class="form-select" name="student_id" required>
+                            <option value="">选择学生</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">成绩</label>
+                        <input type="number" class="form-control" name="score" min="0" max="100" step="0.1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 保存个人信息按钮点击事件
+        $('#saveProfileBtn').on('click', function() {
+            var formData = $('#editProfileForm').serialize();
+            $.ajax({
+                url: '{{ url_for('edit_teacher_profile') }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editProfileModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 添加成绩模态框的保存按钮点击事件
+        $('#addGradeModal').find('.btn-primary').on('click', function() {
+            var formData = $('#addGradeForm').serialize();
+            $.ajax({
+                url: '{{ url_for('teacher_add_grade') }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#addGradeModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 查看课程详情按钮点击事件
+        $('.view-course-details-btn').on('click', function() {
+            var courseId = $(this).closest('tr').data('course-id');
+            window.location.href = '{{ url_for('teacher_course_detail', course_id=0) }}'.replace('/0', '/' + courseId);
+        });
+
+        // 编辑教师课程按钮点击事件
+        $('.edit-teacher-course-btn').on('click', function() {
+            var courseId = $(this).closest('tr').data('course-id');
+            var courseName = $(this).closest('tr').find('td:eq(0)').text();
+
+            $('#editTeacherCourseId').val(courseId);
+            $('#editTeacherCourseName').val(courseName);
+        });
+
+        // 保存编辑教师课程按钮点击事件
+        $('#saveEditedTeacherCourseBtn').on('click', function() {
+            var courseId = $('#editTeacherCourseId').val();
+            var formData = $('#editTeacherCourseForm').serialize();
+            $.ajax({
+                url: '/teacher/course/edit/' + courseId,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editTeacherCourseModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 查看学生成绩按钮点击事件
+        $('.view-student-grades-btn').on('click', function() {
+            var studentId = $(this).closest('tr').data('student-id');
+            window.location.href = '{{ url_for('teacher_student_grades', student_id=0) }}'.replace('/0', '/' + studentId);
+        });
+
+        // 生成成绩单按钮点击事件
+        $('.generate-report-btn').on('click', function() {
+            var studentId = $(this).closest('tr').data('student-id');
+            window.location.href = '{{ url_for('generate_grade_report', student_id=0) }}'.replace('/0', '/' + studentId);
+        });
+    });
+</script>
+{% endblock %} 

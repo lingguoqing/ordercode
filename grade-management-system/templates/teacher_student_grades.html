@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher_dashboard') }}">教师仪表盘</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ student.name }} 的成绩</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>学生: {{ student.name }} ({{ student.username }})</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>邮箱:</strong> {{ student.email }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>成绩详情</h4>
+        </div>
+        <div class="card-body">
+            {% if grades %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>课程名称</th>
+                        <th>成绩</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.course.name }}</td>
+                        <td>{{ grade.score }}</td>
+                        <td>
+                            <!-- 教师不能直接编辑学生成绩，只能通过管理员或重新录入 -->
+                            <button class="btn btn-sm btn-info" disabled>编辑</button>
+                            <button class="btn btn-sm btn-danger" disabled>删除</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>该学生暂无成绩记录。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

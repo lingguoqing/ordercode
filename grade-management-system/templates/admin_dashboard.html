@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">个人信息</a>
+            <a href="#users" class="list-group-item list-group-item-action" data-bs-toggle="list">用户管理</a>
+            <a href="#courses" class="list-group-item list-group-item-action" data-bs-toggle="list">课程管理</a>
+            <a href="#grades" class="list-group-item list-group-item-action" data-bs-toggle="list">成绩管理</a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="profile">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>个人信息</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>用户名：</strong> {{ current_user.username }}</p>
+                        <p><strong>姓名：</strong> {{ current_user.name }}</p>
+                        <p><strong>邮箱：</strong> {{ current_user.email }}</p>
+                        <p><strong>角色：</strong> 管理员</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="users">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>用户管理</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            添加用户
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>姓名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr data-user-id="{{ user.id }}">
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.role }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning edit-user-btn" data-bs-toggle="modal" data-bs-target="#editUserModal">编辑</button>
+                                        <button class="btn btn-sm btn-danger delete-user-btn">删除</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="courses">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>课程管理</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                            添加课程
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>课程名称</th>
+                                    <th>授课教师</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr data-course-id="{{ course.id }}" data-teacher-id="{{ course.teacher.id if course.teacher else '' }}">
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.teacher.name if course.teacher else '未分配' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning edit-course-btn" data-bs-toggle="modal" data-bs-target="#editCourseModal">编辑</button>
+                                        <button class="btn btn-sm btn-danger delete-course-btn">删除</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="grades">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4>成绩管理</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGradeModal">
+                            添加成绩
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>学生</th>
+                                    <th>课程</th>
+                                    <th>成绩</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in grades %}
+                                <tr data-grade-id="{{ grade.id }}" data-student-id="{{ grade.student_id }}" data-course-id="{{ grade.course_id }}" data-score="{{ grade.score }}">
+                                    <td>{{ grade.student.name }}</td>
+                                    <td>{{ grade.course.name }}</td>
+                                    <td>{{ grade.score }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning edit-grade-btn" data-bs-toggle="modal" data-bs-target="#editGradeModal">编辑</button>
+                                        <button class="btn btn-sm btn-danger delete-grade-btn">删除</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加用户模态框 -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">密码</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">角色</label>
+                        <select class="form-select" name="role" required>
+                            <option value="student">学生</option>
+                            <option value="teacher">教师</option>
+                            <option value="admin">管理员</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">姓名</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" name="id" id="editUserId">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" name="username" id="editUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">姓名</label>
+                        <input type="text" class="form-control" name="name" id="editName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-control" name="email" id="editEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">角色</label>
+                        <select class="form-select" name="role" id="editRole" required>
+                            <option value="student">学生</option>
+                            <option value="teacher">教师</option>
+                            <option value="admin">管理员</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">新密码 (留空则不修改)</label>
+                        <input type="password" class="form-control" name="new_password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedUserBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加课程模态框 -->
+<div class="modal fade" id="addCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加课程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCourseForm">
+                    <div class="mb-3">
+                        <label class="form-label">课程名称</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">授课教师</label>
+                        <select class="form-select" name="teacher_id">
+                            <option value="">选择教师</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveCourseBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑课程模态框 -->
+<div class="modal fade" id="editCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑课程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseForm">
+                    <input type="hidden" name="id" id="editCourseId">
+                    <div class="mb-3">
+                        <label class="form-label">课程名称</label>
+                        <input type="text" class="form-control" name="name" id="editCourseName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">授课教师</label>
+                        <select class="form-select" name="teacher_id" id="editCourseTeacher">
+                            <option value="">选择教师</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedCourseBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加成绩模态框 -->
+<div class="modal fade" id="addGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加成绩</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGradeForm">
+                    <div class="mb-3">
+                        <label class="form-label">学生</label>
+                        <select class="form-select" name="student_id" required>
+                            <option value="">选择学生</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" required>
+                            <option value="">选择课程</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">成绩</label>
+                        <input type="number" class="form-control" name="score" min="0" max="100" step="0.1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveGradeBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑成绩模态框 -->
+<div class="modal fade" id="editGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑成绩</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGradeForm">
+                    <input type="hidden" name="id" id="editGradeId">
+                    <div class="mb-3">
+                        <label class="form-label">学生</label>
+                        <select class="form-select" name="student_id" id="editGradeStudent" required>
+                            <option value="">选择学生</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" id="editGradeCourse" required>
+                            <option value="">选择课程</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">成绩</label>
+                        <input type="number" class="form-control" name="score" id="editGradeScore" min="0" max="100" step="0.1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedGradeBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 处理添加课程表单提交
+        $('#saveCourseBtn').on('click', function() {
+            var formData = $('#addCourseForm').serialize();
+            $.ajax({
+                url: '{{ url_for('add_course') }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#addCourseModal').modal('hide');
+                    location.reload(); // 重新加载页面以更新课程列表
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 处理添加用户表单提交
+        $('#saveUserBtn').on('click', function() {
+            var formData = $('#addUserForm').serialize();
+            $.ajax({
+                url: '{{ url_for('add_user') }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#addUserModal').modal('hide');
+                    location.reload(); // 重新加载页面以更新用户列表
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 处理添加成绩表单提交
+        $('#saveGradeBtn').on('click', function() {
+            var formData = $('#addGradeForm').serialize();
+            $.ajax({
+                url: '{{ url_for('add_grade') }}',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#addGradeModal').modal('hide');
+                    location.reload(); // 重新加载页面以更新成绩列表
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 编辑用户按钮点击事件
+        $('.edit-user-btn').on('click', function() {
+            var userId = $(this).closest('tr').data('user-id');
+            var username = $(this).closest('tr').find('td:eq(0)').text();
+            var name = $(this).closest('tr').find('td:eq(1)').text();
+            var email = $(this).closest('tr').find('td:eq(2)').text();
+            var role = $(this).closest('tr').find('td:eq(3)').text();
+
+            $('#editUserId').val(userId);
+            $('#editUsername').val(username);
+            $('#editName').val(name);
+            $('#editEmail').val(email);
+            $('#editRole').val(role);
+        });
+
+        // 保存编辑用户按钮点击事件
+        $('#saveEditedUserBtn').on('click', function() {
+            var userId = $('#editUserId').val();
+            var formData = $('#editUserForm').serialize();
+            $.ajax({
+                url: '/admin/user/edit/' + userId,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editUserModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 删除用户按钮点击事件
+        $('.delete-user-btn').on('click', function() {
+            var userId = $(this).closest('tr').data('user-id');
+            if (confirm('确定要删除该用户吗？此操作不可撤销！')) {
+                $.ajax({
+                    url: '/admin/user/delete/' + userId,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.message);
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // 编辑课程按钮点击事件
+        $('.edit-course-btn').on('click', function() {
+            var courseId = $(this).closest('tr').data('course-id');
+            var courseName = $(this).closest('tr').find('td:eq(0)').text();
+            var teacherId = $(this).closest('tr').data('teacher-id');
+
+            $('#editCourseId').val(courseId);
+            $('#editCourseName').val(courseName);
+            $('#editCourseTeacher').val(teacherId); // 设置下拉框选中值
+        });
+
+        // 保存编辑课程按钮点击事件
+        $('#saveEditedCourseBtn').on('click', function() {
+            var courseId = $('#editCourseId').val();
+            var formData = $('#editCourseForm').serialize();
+            $.ajax({
+                url: '/admin/course/edit/' + courseId,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editCourseModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 删除课程按钮点击事件
+        $('.delete-course-btn').on('click', function() {
+            var courseId = $(this).closest('tr').data('course-id');
+            if (confirm('确定要删除该课程吗？此操作不可撤销！')) {
+                $.ajax({
+                    url: '/admin/course/delete/' + courseId,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.message);
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // 编辑成绩按钮点击事件
+        $('.edit-grade-btn').on('click', function() {
+            var gradeId = $(this).closest('tr').data('grade-id');
+            var studentId = $(this).closest('tr').data('student-id');
+            var courseId = $(this).closest('tr').data('course-id');
+            var score = $(this).closest('tr').data('score');
+
+            $('#editGradeId').val(gradeId);
+            $('#editGradeStudent').val(studentId);
+            $('#editGradeCourse').val(courseId);
+            $('#editGradeScore').val(score);
+        });
+
+        // 保存编辑成绩按钮点击事件
+        $('#saveEditedGradeBtn').on('click', function() {
+            var gradeId = $('#editGradeId').val();
+            var formData = $('#editGradeForm').serialize();
+            $.ajax({
+                url: '/admin/grade/edit/' + gradeId,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editGradeModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        });
+
+        // 删除成绩按钮点击事件
+        $('.delete-grade-btn').on('click', function() {
+            var gradeId = $(this).closest('tr').data('grade-id');
+            if (confirm('确定要删除该成绩吗？此操作不可撤销！')) {
+                $.ajax({
+                    url: '/admin/grade/delete/' + gradeId,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.message);
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %} 

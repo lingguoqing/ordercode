@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 mb-4">欢迎使用成绩管理系统</h1>
+        <p class="lead">这是一个综合性的成绩管理平台，支持管理员、教师和学生三种角色。</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-user-shield fa-3x mb-3"></i>
+                        <h5 class="card-title">管理员</h5>
+                        <p class="card-text">管理系统用户、课程和成绩信息</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
+                        <h5 class="card-title">教师</h5>
+                        <p class="card-text">管理课程和录入学生成绩</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="fas fa-user-graduate fa-3x mb-3"></i>
+                        <h5 class="card-title">学生</h5>
+                        <p class="card-text">查看个人成绩和统计分析</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">登录</a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">注册</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

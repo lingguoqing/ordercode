@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('teacher_dashboard') }}">教师仪表盘</a></li>
+            <li class="breadcrumb-item active" aria-current="page">课程详情</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>课程名称: {{ course.name }}</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>授课教师:</strong> {{ course.teacher.name if course.teacher else '未分配' }}</p>
+            <p><strong>学生数量:</strong> {{ course.students|length }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>选课学生</h4>
+        </div>
+        <div class="card-body">
+            {% if course.students %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>邮箱</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in course.students %}
+                    <tr>
+                        <td>{{ student.username }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.email }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>该课程暂无学生选修。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
