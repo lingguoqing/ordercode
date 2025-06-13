@@ -15,9 +15,9 @@
         </div>
         <div class="card-body">
             <p><strong>授课教师:</strong> {{ course.teacher.name if course.teacher else '未分配' }}</p>
-            <p><strong>当前报名人数:</strong> {{ course.students|length }}</p>
+            <p><strong>当前报名人数:</strong> {{ course.enrollments|selectattr('is_active', 'equalto', True)|list|length }}</p>
             <p><strong>最大学生数量:</strong> {{ course.max_students }}</p>
-            <p><strong>剩余名额:</strong> {{ course.max_students - course.students|length }}</p>
+            <p><strong>剩余名额:</strong> {{ course.max_students - (course.enrollments|selectattr('is_active', 'equalto', True)|list|length) }}</p>
         </div>
     </div>
 
@@ -26,7 +26,8 @@
             <h4>选课学生</h4>
         </div>
         <div class="card-body">
-            {% if course.students %}
+            {% set active_enrollments = course.enrollments|selectattr('is_active', 'equalto', True)|list %}
+            {% if active_enrollments %}
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -36,11 +37,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for student in course.students %}
+                    {% for enrollment in active_enrollments %}
                     <tr>
-                        <td>{{ student.username }}</td>
-                        <td>{{ student.name }}</td>
-                        <td>{{ student.email }}</td>
+                        <td>{{ enrollment.student.username }}</td>
+                        <td>{{ enrollment.student.name }}</td>
+                        <td>{{ enrollment.student.email }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -5,19 +5,17 @@
     <div class="col-md-3">
         <div class="list-group">
             <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">个人信息</a>
-            <a href="#grades" class="list-group-item list-group-item-action" data-bs-toggle="list">成绩查询</a>
-            <a href="#analysis" class="list-group-item list-group-item-action" data-bs-toggle="list">成绩分析</a>
+            <a href="#courses" class="list-group-item list-group-item-action" data-bs-toggle="list">课程列表</a>
+            <a href="#my-courses" class="list-group-item list-group-item-action" data-bs-toggle="list">我的课程</a>
+            <a href="#grades" class="list-group-item list-group-item-action" data-bs-toggle="list">我的成绩</a>
         </div>
     </div>
     <div class="col-md-9">
         <div class="tab-content">
             <div class="tab-pane fade show active" id="profile">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header">
                         <h4>个人信息</h4>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            编辑信息
-                        </button>
                     </div>
                     <div class="card-body">
                         <p><strong>用户名：</strong> {{ current_user.username }}</p>
@@ -28,37 +26,42 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="grades">
+            <div class="tab-pane fade" id="courses">
                 <div class="card">
                     <div class="card-header">
-                        <h4>成绩查询</h4>
+                        <h4>可选课程</h4>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <select class="form-select" id="courseFilter">
-                                <option value="">所有课程</option>
-                                {% for course in courses %}
-                                <option value="{{ course.id }}">{{ course.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>课程</th>
-                                    <th>教师</th>
-                                    <th>成绩</th>
+                                    <th>课程名称</th>
+                                    <th>授课教师</th>
+                                    <th>最大人数</th>
+                                    <th>已报名人数</th>
+                                    <th>剩余名额</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for grade in grades %}
-                                <tr>
-                                    <td>{{ grade.course.name }}</td>
-                                    <td>{{ grade.course.teacher.name }}</td>
-                                    <td>{{ grade.score }}</td>
+                                {% for course in all_courses %}
+                                <tr data-course-id="{{ course.id }}">
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.teacher.name if course.teacher else '未分配' }}</td>
+                                    <td>{{ course.max_students }}</td>
+                                    <td>{{ course.enrollments|selectattr('is_active', 'equalto', True)|list|length }}</td>
+                                    <td>{{ course.max_students - (course.enrollments|selectattr('is_active', 'equalto', True)|list|length) }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-info">查看详情</button>
+                                        {% set enrollment_for_course = student_enrollments.get(course.id) %}
+                                        {% if course.enrollments|selectattr('is_active', 'equalto', True)|list|length >= course.max_students %}
+                                            <button class="btn btn-sm btn-secondary" disabled>名额已满</button>
+                                        {% elif enrollment_for_course and enrollment_for_course.operation_count >= 3 %}
+                                            <button class="btn btn-sm btn-secondary" disabled>已达操作上限</button>
+                                        {% elif enrollment_for_course and enrollment_for_course.is_active %}
+                                            <button class="btn btn-sm btn-secondary" disabled>已报名</button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-primary enroll-course-btn">报名</button>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -68,100 +71,69 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="analysis">
+            <div class="tab-pane fade" id="my-courses">
                 <div class="card">
                     <div class="card-header">
-                        <h4>成绩分析</h4>
+                        <h4>我的课程</h4>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="card-title">成绩分布</h5>
-                                        <canvas id="gradeDistribution"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <h5 class="card-title">课程对比</h5>
-                                        <canvas id="courseComparison"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">成绩统计</h5>
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>统计项</th>
-                                                    <th>数值</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>平均分</td>
-                                                    <td>{{ stats.average }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>最高分</td>
-                                                    <td>{{ stats.highest }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>最低分</td>
-                                                    <td>{{ stats.lowest }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>及格率</td>
-                                                    <td>{{ stats.pass_rate }}%</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>课程名称</th>
+                                    <th>授课教师</th>
+                                    <th>成绩</th>
+                                    <th>操作次数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in current_user.enrollments if enrollment.is_active %}
+                                <tr>
+                                    <td>{{ enrollment.course.name }}</td>
+                                    <td>{{ enrollment.course.teacher.name if enrollment.course.teacher else '未分配' }}</td>
+                                    <td>
+                                        {% set grade = enrollment.course.grades|selectattr('student_id', 'equalto', current_user.id)|first %}
+                                        {{ grade.score if grade else '暂无' }}
+                                    </td>
+                                    <td>
+                                        {{ enrollment.operation_count }}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger unenroll-course-btn" data-course-id="{{ enrollment.course.id }}">退出报名</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- 编辑个人信息模态框 -->
-<div class="modal fade" id="editProfileModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">编辑个人信息</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editProfileForm">
-                    <div class="mb-3">
-                        <label class="form-label">姓名</label>
-                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+            <div class="tab-pane fade" id="grades">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>我的成绩</h4>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">邮箱</label>
-                        <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>课程名称</th>
+                                    <th>成绩</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in current_user.grades %}
+                                <tr>
+                                    <td>{{ grade.course.name }}</td>
+                                    <td>{{ grade.score }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">新密码</label>
-                        <input type="password" class="form-control" name="new_password">
-                        <small class="text-muted">如果不修改密码，请留空</small>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary">保存</button>
+                </div>
             </div>
         </div>
     </div>
@@ -169,55 +141,45 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 <script>
-// 成绩分布图表
-const gradeDistributionCtx = document.getElementById('gradeDistribution').getContext('2d');
-new Chart(gradeDistributionCtx, {
-    type: 'bar',
-    data: {
-        labels: ['0-60', '60-70', '70-80', '80-90', '90-100'],
-        datasets: [{
-            label: '成绩分布',
-            data: {{ grade_distribution|tojson }},
-            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
+$(document).ready(function() {
+    // 使用事件委托处理报名课程按钮点击事件
+    $(document).on('click', '.enroll-course-btn', function() {
+        var courseId = $(this).closest('tr').data('course-id');
+        if (confirm('确定要报名该课程吗？')) {
+            $.ajax({
+                url: '/student/course/enroll/' + courseId,
+                type: 'POST',
+                success: function(response) {
+                    alert(response.message);
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
         }
-    }
-});
+    });
 
-// 课程对比图表
-const courseComparisonCtx = document.getElementById('courseComparison').getContext('2d');
-new Chart(courseComparisonCtx, {
-    type: 'radar',
-    data: {
-        labels: {{ course_names|tojson }},
-        datasets: [{
-            label: '成绩对比',
-            data: {{ course_scores|tojson }},
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            r: {
-                beginAtZero: true,
-                max: 100
-            }
+    // 使用事件委托处理退出报名按钮点击事件
+    $(document).on('click', '.unenroll-course-btn', function() {
+        var courseId = $(this).data('course-id');
+        if (confirm('确定要退出该课程的报名吗？')) {
+            $.ajax({
+                url: '/student/course/unenroll/' + courseId,
+                type: 'POST',
+                success: function(response) {
+                    alert(response.message);
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
         }
-    }
+    });
 });
 </script>
 {% endblock %} 

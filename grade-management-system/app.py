@@ -4,12 +4,14 @@ from datetime import datetime
 
 import pymysql
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+from sqlalchemy.exc import IntegrityError
 
 from config import config
 
@@ -24,6 +26,7 @@ app = Flask(__name__)
 app.config.from_object(config['development'])
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -44,6 +47,7 @@ class User(UserMixin, db.Model):
 
     courses = db.relationship('Course', backref='teacher', lazy=True)
     grades = db.relationship('Grade', backref='student', lazy=True, cascade='all, delete-orphan')
+    enrollments = db.relationship('Enrollment', back_populates='student', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -63,18 +67,23 @@ class Course(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    students = db.relationship('User', secondary='course_student', backref='enrolled_courses')
     grades = db.relationship('Grade', backref='course', lazy=True, cascade='all, delete-orphan')
+    enrollments = db.relationship('Enrollment', back_populates='course', lazy=True, cascade='all, delete-orphan')
 
 
-# 课程-学生关联表
-course_student = db.Table('course_student',
-                          db.Column('course_id', db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'),
-                                    primary_key=True),
-                          db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
-                                    primary_key=True),
-                          db.Column('created_at', db.DateTime, default=datetime.utcnow)
-                          )
+# 学生选课记录模型
+class Enrollment(db.Model):
+    __tablename__ = 'enrollments'
+
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'), primary_key=True)
+    operation_count = db.Column(db.Integer, nullable=False, default=0) # 每门课程的报名操作次数
+    is_active = db.Column(db.Boolean, nullable=False, default=True) # 是否处于活跃报名状态
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    student = db.relationship('User', back_populates='enrollments')
+    course = db.relationship('Course', back_populates='enrollments')
 
 
 # 成绩模型
@@ -619,40 +628,11 @@ def student_dashboard():
     if current_user.role != 'student':
         flash('无权访问')
         return redirect(url_for('index'))
-
-    courses = current_user.enrolled_courses
-    grades = Grade.query.filter_by(student_id=current_user.id).all()
-
-    # 计算成绩统计
-    scores = [grade.score for grade in grades]
-    stats = {
-        'average': round(sum(scores) / len(scores) if scores else 0, 2),
-        'highest': max(scores) if scores else 0,
-        'lowest': min(scores) if scores else 0,
-        'pass_rate': round(len([s for s in scores if s >= 60]) / len(scores) * 100 if scores else 0, 2)
-    }
-
-    # 计算成绩分布
-    distribution = [0] * 5
-    for score in scores:
-        if score < 60:
-            distribution[0] += 1
-        elif score < 70:
-            distribution[1] += 1
-        elif score < 80:
-            distribution[2] += 1
-        elif score < 90:
-            distribution[3] += 1
-        else:
-            distribution[4] += 1
-
-    return render_template('student_dashboard.html',
-                           courses=courses,
-                           grades=grades,
-                           stats=stats,
-                           grade_distribution=distribution,
-                           course_names=[grade.course.name for grade in grades],
-                           course_scores=[grade.score for grade in grades])
+    
+    all_courses = Course.query.all()
+    # 获取学生已报名的课程以及对应的操作次数
+    student_enrollments = {e.course_id: e for e in current_user.enrollments}
+    return render_template('student_dashboard.html', all_courses=all_courses, student_enrollments=student_enrollments)
 
 
 @app.route('/student/profile/edit', methods=['POST'])
@@ -673,6 +653,109 @@ def edit_student_profile():
 
     db.session.commit()
     return jsonify({'message': '个人信息更新成功'})
+
+
+@app.route('/student/course/enroll/<int:course_id>', methods=['POST'])
+@login_required
+def student_enroll_course(course_id):
+    if current_user.role != 'student':
+        return jsonify({'error': '无权访问'}), 403
+
+    course = Course.query.get(course_id)
+    if not course:
+        return jsonify({'error': '课程未找到'}), 404
+
+    try:
+        # 尝试查找现有选课记录
+        enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course_id).first()
+
+        if enrollment:
+            # 如果记录存在，检查操作次数限制
+            if enrollment.operation_count >= 3:
+                return jsonify({'error': '该课程已达操作上限，无法再次报名'}), 400
+            
+            # 如果已存在但不是活跃状态（之前取消过），则重新激活
+            if not enrollment.is_active:
+                enrollment.is_active = True
+                enrollment.operation_count += 1
+                db.session.commit()
+                return jsonify({'message': '已重新报名该课程，操作次数增加'})
+            else:
+                # 如果已活跃报名，则不增加操作次数，直接提示已报名
+                return jsonify({'error': '您已报名该课程'}), 400
+        else:
+            # 如果是首次报名
+            # 检查课程是否已满
+            if len(course.enrollments) >= course.max_students:
+                return jsonify({'error': '课程名额已满'}), 400
+            
+            new_enrollment = Enrollment(
+                student_id=current_user.id,
+                course_id=course_id,
+                operation_count=1,
+                is_active=True
+            )
+            db.session.add(new_enrollment)
+            db.session.commit()
+            return jsonify({'message': '课程报名成功'})
+    except IntegrityError as e:
+        db.session.rollback()
+        # 如果出现IntegrityError，通常表示在并发情况下记录已经存在，重新尝试查询并更新
+        enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course_id).first()
+        if enrollment:
+            if enrollment.operation_count >= 3:
+                return jsonify({'error': '该课程已达操作上限，无法再次报名'}), 400
+            if not enrollment.is_active:
+                enrollment.is_active = True
+                enrollment.operation_count += 1
+                db.session.commit()
+                return jsonify({'message': '已重新报名该课程，操作次数增加 (通过错误恢复)'})
+            else:
+                return jsonify({'error': '您已报名该课程 (通过错误恢复)'}), 400
+        else:
+            return jsonify({'error': f'报名失败: {str(e)}'}), 500
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'报名失败: {str(e)}'}), 500
+
+
+@app.route('/student/course/unenroll/<int:course_id>', methods=['POST'])
+@login_required
+def student_unenroll_course(course_id):
+    if current_user.role != 'student':
+        return jsonify({'error': '无权访问'}), 403
+
+    enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course_id).first()
+
+    if not enrollment or not enrollment.is_active:
+        return jsonify({'error': '未找到该课程的有效报名记录'}), 404
+
+    try:
+        # 取消报名（设置为非活跃），并增加操作次数
+        enrollment.is_active = False
+        enrollment.operation_count += 1
+        db.session.commit()
+        return jsonify({'message': '成功退出课程报名'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'退出报名失败: {str(e)}'}), 500
+
+
+@app.route('/api/student/<int:student_id>/courses')
+@login_required
+def get_student_courses(student_id):
+    student = User.query.get_or_404(student_id)
+    if current_user.role not in ['admin', 'teacher'] and current_user.id != student_id:
+        abort(403)
+
+    # 获取学生已报名的活跃课程
+    active_enrollments = Enrollment.query.filter_by(student_id=student.id, is_active=True).all()
+    courses = []
+    for enrollment in active_enrollments:
+        course = Course.query.get(enrollment.course_id)
+        if course:
+            courses.append({'id': course.id, 'name': course.name})
+    return jsonify(courses)
 
 
 if __name__ == '__main__':

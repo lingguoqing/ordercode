@@ -90,8 +90,8 @@
                                     <td>{{ course.name }}</td>
                                     <td>{{ course.teacher.name if course.teacher else '未分配' }}</td>
                                     <td>{{ course.max_students }}</td>
-                                    <td>{{ course.students|length }}</td>
-                                    <td>{{ course.max_students - course.students|length }}</td>
+                                    <td>{{ course.enrollments|selectattr('is_active', 'equalto', True)|list|length }}</td>
+                                    <td>{{ course.max_students - (course.enrollments|selectattr('is_active', 'equalto', True)|list|length) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-warning edit-course-btn" data-bs-toggle="modal" data-bs-target="#editCourseModal">编辑</button>
                                         <button class="btn btn-sm btn-danger delete-course-btn">删除</button>
@@ -315,7 +315,7 @@
                 <form id="addGradeForm">
                     <div class="mb-3">
                         <label class="form-label">学生</label>
-                        <select class="form-select" name="student_id" required>
+                        <select class="form-select" name="student_id" id="addGradeStudentSelect" required>
                             <option value="">选择学生</option>
                             {% for student in students %}
                             <option value="{{ student.id }}">{{ student.name }}</option>
@@ -324,11 +324,9 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">课程</label>
-                        <select class="form-select" name="course_id" required>
+                        <select class="form-select" name="course_id" id="addGradeCourseSelect" required>
                             <option value="">选择课程</option>
-                            {% for course in courses %}
-                            <option value="{{ course.id }}">{{ course.name }}</option>
-                            {% endfor %}
+                            {# Courses will be dynamically loaded here #}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -369,9 +367,7 @@
                         <label class="form-label">课程</label>
                         <select class="form-select" name="course_id" id="editGradeCourse" required>
                             <option value="">选择课程</option>
-                            {% for course in courses %}
-                            <option value="{{ course.id }}">{{ course.name }}</option>
-                            {% endfor %}
+                            {# Courses will be dynamically loaded here #}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -598,6 +594,90 @@
                     success: function(response) {
                         alert(response.message);
                         location.reload();
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // JavaScript for dynamically loading courses based on student selection
+        $('#addGradeModal').on('show.bs.modal', function () {
+            // Reset the form when the modal is shown
+            $('#addGradeForm')[0].reset();
+            $('#addGradeCourseSelect').empty().append('<option value="">选择课程</option>');
+        });
+
+        $('#addGradeStudentSelect').on('change', function() {
+            var studentId = $(this).val();
+            var courseSelect = $('#addGradeCourseSelect');
+            courseSelect.empty(); // Clear existing options
+            courseSelect.append('<option value="">选择课程</option>'); // Add default option
+
+            if (studentId) {
+                $.ajax({
+                    url: '/api/student/' + studentId + '/courses',
+                    type: 'GET',
+                    success: function(courses) {
+                        $.each(courses, function(index, course) {
+                            courseSelect.append($('<option></option>').val(course.id).text(course.name));
+                        });
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // 同理应用于编辑成绩模态框
+        $('#editGradeModal').on('show.bs.modal', function () {
+            var gradeId = $('#editGradeId').val();
+            var studentId = $('#editGradeStudent').val();
+            var courseId = $('#editGradeCourse').data('original-course-id'); // Get original course ID
+
+            var courseSelect = $('#editGradeCourse');
+            courseSelect.empty();
+            courseSelect.append('<option value="">选择课程</option>');
+
+            if (studentId) {
+                $.ajax({
+                    url: '/api/student/' + studentId + '/courses',
+                    type: 'GET',
+                    success: function(courses) {
+                        $.each(courses, function(index, course) {
+                            var option = $('<option></option>').val(course.id).text(course.name);
+                            if (course.id == courseId) { // Select the original course
+                                option.attr('selected', 'selected');
+                            }
+                            courseSelect.append(option);
+                        });
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        $('#editGradeStudent').on('change', function() {
+            var studentId = $(this).val();
+            var courseSelect = $('#editGradeCourse');
+            courseSelect.empty(); // Clear existing options
+            courseSelect.append('<option value="">选择课程</option>'); // Add default option
+
+            if (studentId) {
+                $.ajax({
+                    url: '/api/student/' + studentId + '/courses',
+                    type: 'GET',
+                    success: function(courses) {
+                        $.each(courses, function(index, course) {
+                            courseSelect.append($('<option></option>').val(course.id).text(course.name));
+                        });
                     },
                     error: function(xhr) {
                         var errorData = JSON.parse(xhr.responseText);

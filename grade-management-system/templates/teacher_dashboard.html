@@ -50,8 +50,8 @@
                                 <tr data-course-id="{{ course.id }}" data-max-students="{{ course.max_students }}">
                                     <td>{{ course.name }}</td>
                                     <td>{{ course.max_students }}</td>
-                                    <td>{{ course.students|length }}</td>
-                                    <td>{{ course.max_students - course.students|length }}</td>
+                                    <td>{{ course.enrollments|selectattr('is_active', 'equalto', True)|list|length }}</td>
+                                    <td>{{ course.max_students - (course.enrollments|selectattr('is_active', 'equalto', True)|list|length) }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info view-course-details-btn">查看详情</button>
                                         <button class="btn btn-sm btn-warning edit-teacher-course-btn" data-bs-toggle="modal" data-bs-target="#editTeacherCourseModal">编辑</button>
@@ -92,13 +92,13 @@
                             </thead>
                             <tbody>
                                 {% for grade in grades %}
-                                <tr>
+                                <tr data-grade-id="{{ grade.id }}" data-student-id="{{ grade.student_id }}" data-course-id="{{ grade.course_id }}" data-score="{{ grade.score }}">
                                     <td>{{ grade.student.name }}</td>
                                     <td>{{ grade.course.name }}</td>
                                     <td>{{ grade.score }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning">编辑</button>
-                                        <button class="btn btn-sm btn-danger">删除</button>
+                                        <button class="btn btn-sm btn-warning edit-grade-btn" data-bs-toggle="modal" data-bs-target="#editGradeModal">编辑</button>
+                                        <button class="btn btn-sm btn-danger delete-grade-btn">删除</button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -229,21 +229,19 @@
             <div class="modal-body">
                 <form id="addGradeForm">
                     <div class="mb-3">
-                        <label class="form-label">课程</label>
-                        <select class="form-select" name="course_id" required>
-                            <option value="">选择课程</option>
-                            {% for course in courses %}
-                            <option value="{{ course.id }}">{{ course.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">学生</label>
-                        <select class="form-select" name="student_id" required>
+                        <select class="form-select" name="student_id" id="addGradeStudentSelect" required>
                             <option value="">选择学生</option>
                             {% for student in students %}
                             <option value="{{ student.id }}">{{ student.name }}</option>
                             {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" id="addGradeCourseSelect" required>
+                            <option value="">选择课程</option>
+                            {# Courses will be dynamically loaded here #}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -255,6 +253,47 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                 <button type="button" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑成绩模态框 -->
+<div class="modal fade" id="editGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑成绩</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGradeForm">
+                    <input type="hidden" name="id" id="editGradeId">
+                    <div class="mb-3">
+                        <label class="form-label">学生</label>
+                        <select class="form-select" name="student_id" id="editGradeStudentSelect" required>
+                            <option value="">选择学生</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" id="editGradeCourseSelect" required>
+                            <option value="">选择课程</option>
+                            {# Courses will be dynamically loaded here #}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">成绩</label>
+                        <input type="number" class="form-control" name="score" id="editGradeScore" min="0" max="100" step="0.1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedGradeBtn">保存</button>
             </div>
         </div>
     </div>
@@ -349,6 +388,104 @@
         $('.generate-report-btn').on('click', function() {
             var studentId = $(this).closest('tr').data('student-id');
             window.location.href = '{{ url_for('generate_grade_report', student_id=0) }}'.replace('/0', '/' + studentId);
+        });
+
+        // JavaScript for dynamically loading courses based on student selection in Add Grade Modal
+        $('#addGradeModal').on('show.bs.modal', function () {
+            // Reset the form when the modal is shown
+            $('#addGradeForm')[0].reset();
+            $('#addGradeCourseSelect').empty().append('<option value="">选择课程</option>');
+        });
+
+        $('#addGradeStudentSelect').on('change', function() {
+            var studentId = $(this).val();
+            var courseSelect = $('#addGradeCourseSelect');
+            courseSelect.empty(); // Clear existing options
+            courseSelect.append('<option value="">选择课程</option>'); // Add default option
+
+            if (studentId) {
+                $.ajax({
+                    url: '/api/student/' + studentId + '/courses',
+                    type: 'GET',
+                    success: function(courses) {
+                        $.each(courses, function(index, course) {
+                            courseSelect.append($('<option></option>').val(course.id).text(course.name));
+                        });
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // JavaScript for dynamically loading courses based on student selection in Edit Grade Modal
+        $('.edit-grade-btn').on('click', function() {
+            var gradeId = $(this).closest('tr').data('grade-id');
+            var studentId = $(this).closest('tr').data('student-id');
+            var courseId = $(this).closest('tr').data('course-id');
+            var score = $(this).closest('tr').data('score');
+
+            $('#editGradeId').val(gradeId);
+            $('#editGradeScore').val(score);
+
+            // Set student and trigger change to load courses
+            $('#editGradeStudentSelect').val(studentId).trigger('change');
+
+            // Store original courseId to select it after courses are loaded
+            $('#editGradeCourseSelect').data('original-course-id', courseId);
+        });
+
+        $('#editGradeStudentSelect').on('change', function() {
+            var studentId = $(this).val();
+            var courseSelect = $('#editGradeCourseSelect');
+            var originalCourseId = courseSelect.data('original-course-id');
+
+            courseSelect.empty(); // Clear existing options
+            courseSelect.append('<option value="">选择课程</option>'); // Add default option
+
+            if (studentId) {
+                $.ajax({
+                    url: '/api/student/' + studentId + '/courses',
+                    type: 'GET',
+                    success: function(courses) {
+                        $.each(courses, function(index, course) {
+                            var option = $('<option></option>').val(course.id).text(course.name);
+                            if (course.id == originalCourseId) {
+                                option.attr('selected', 'selected');
+                            }
+                            courseSelect.append(option);
+                        });
+                        // Clear originalCourseId after use
+                        courseSelect.removeData('original-course-id');
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
+        });
+
+        // 保存编辑成绩
+        $('#saveEditedGradeBtn').on('click', function() {
+            var gradeId = $('#editGradeId').val();
+            var formData = $('#editGradeForm').serialize();
+            $.ajax({
+                url: '/teacher/grade/edit/' + gradeId,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#editGradeModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
         });
     });
 </script>
