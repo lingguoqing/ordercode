@@ -74,14 +74,15 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
+                            <label class="form-label">筛选课程:</label>
                             <select class="form-select" id="courseFilter">
-                                <option value="">所有课程</option>
+                                <option value="0">所有课程</option>
                                 {% for course in courses %}
                                 <option value="{{ course.id }}">{{ course.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <table class="table">
+                        <table class="table" id="gradesTable">
                             <thead>
                                 <tr>
                                     <th>学生</th>
@@ -91,17 +92,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for grade in grades %}
-                                <tr data-grade-id="{{ grade.id }}" data-student-id="{{ grade.student_id }}" data-course-id="{{ grade.course_id }}" data-score="{{ grade.score }}">
-                                    <td>{{ grade.student.name }}</td>
-                                    <td>{{ grade.course.name }}</td>
-                                    <td>{{ grade.score }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning edit-grade-btn" data-bs-toggle="modal" data-bs-target="#editGradeModal">编辑</button>
-                                        <button class="btn btn-sm btn-danger delete-grade-btn">删除</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                {# Grades will be dynamically loaded here #}
                             </tbody>
                         </table>
                     </div>
@@ -115,8 +106,9 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <select class="form-select" id="courseFilter">
-                                <option value="">所有课程</option>
+                            <label class="form-label">筛选课程:</label>
+                            <select class="form-select" id="studentCourseFilter">
+                                <option value="0">所有课程</option>
                                 {% for course in courses %}
                                 <option value="{{ course.id }}">{{ course.name }}</option>
                                 {% endfor %}
@@ -131,22 +123,8 @@
                                     <th>操作</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for student in students %}
-                                <tr data-student-id="{{ student.id }}">
-                                    <td>{{ student.name }}</td>
-                                    <td>{{ student.email }}</td>
-                                    <td>
-                                        {% for course in student.courses %}
-                                        <span class="badge bg-primary">{{ course.name }}</span>
-                                        {% endfor %}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info view-student-grades-btn">查看成绩</button>
-                                        <button class="btn btn-sm btn-primary generate-report-btn">生成成绩单</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                            <tbody id="studentsTableBody">
+                                {# Students will be dynamically loaded here #}
                             </tbody>
                         </table>
                     </div>
@@ -271,18 +249,14 @@
                     <input type="hidden" name="id" id="editGradeId">
                     <div class="mb-3">
                         <label class="form-label">学生</label>
-                        <select class="form-select" name="student_id" id="editGradeStudentSelect" required>
-                            <option value="">选择学生</option>
-                            {% for student in students %}
-                            <option value="{{ student.id }}">{{ student.name }}</option>
-                            {% endfor %}
+                        <select class="form-select" name="student_id" id="editGradeStudentSelect" required disabled>
+                            {# Student will be dynamically displayed here #}
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">课程</label>
-                        <select class="form-select" name="course_id" id="editGradeCourseSelect" required>
-                            <option value="">选择课程</option>
-                            {# Courses will be dynamically loaded here #}
+                        <select class="form-select" name="course_id" id="editGradeCourseSelect" required disabled>
+                            {# Course will be dynamically displayed here #}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -378,15 +352,65 @@
             });
         });
 
-        // 查看学生成绩按钮点击事件
-        $('.view-student-grades-btn').on('click', function() {
-            var studentId = $(this).closest('tr').data('student-id');
+        // Load students on page load (initially all students)
+        loadStudents(0);
+
+        // Handle student course filter change
+        $('#studentCourseFilter').on('change', function() {
+            var courseId = $(this).val();
+            loadStudents(courseId);
+        });
+
+        // Function to load students via AJAX
+        function loadStudents(courseId) {
+            $.ajax({
+                url: '/api/teacher/students_by_course/' + courseId,
+                type: 'GET',
+                success: function(students) {
+                    var tbody = $('#studentsTableBody');
+                    tbody.empty(); // Clear existing rows
+
+                    if (students.length > 0) {
+                        $.each(students, function(index, student) {
+                            var row = '<tr data-student-id="' + student.id + '">';
+                            row += '<td>' + student.name + '</td>';
+                            row += '<td>' + student.email + '</td>';
+                            row += '<td>';
+                            if (student.enrolled_courses && student.enrolled_courses.length > 0) {
+                                $.each(student.enrolled_courses, function(i, courseName) {
+                                    row += '<span class="badge bg-primary me-1">' + courseName + '</span>';
+                                });
+                            } else {
+                                row += '暂无';
+                            }
+                            row += '</td>';
+                            row += '<td>';
+                            row += '    <button class="btn btn-sm btn-info view-student-grades-btn" data-student-id="' + student.id + '">查看成绩</button>';
+                            row += '    <button class="btn btn-sm btn-primary generate-report-btn" data-student-id="' + student.id + '">生成成绩单</button>';
+                            row += '</td>';
+                            row += '</tr>';
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="4">暂无学生信息。</td></tr>');
+                    }
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        }
+
+        // Delegate click event for view-student-grades-btn
+        $(document).on('click', '.view-student-grades-btn', function() {
+            var studentId = $(this).data('student-id');
             window.location.href = '{{ url_for('teacher_student_grades', student_id=0) }}'.replace('/0', '/' + studentId);
         });
 
-        // 生成成绩单按钮点击事件
-        $('.generate-report-btn').on('click', function() {
-            var studentId = $(this).closest('tr').data('student-id');
+        // Delegate click event for generate-report-btn
+        $(document).on('click', '.generate-report-btn', function() {
+            var studentId = $(this).data('student-id');
             window.location.href = '{{ url_for('generate_grade_report', student_id=0) }}'.replace('/0', '/' + studentId);
         });
 
@@ -420,56 +444,28 @@
             }
         });
 
-        // JavaScript for dynamically loading courses based on student selection in Edit Grade Modal
-        $('.edit-grade-btn').on('click', function() {
+        // Handle edit grade button click to populate modal
+        $(document).on('click', '.edit-grade-btn', function() {
             var gradeId = $(this).closest('tr').data('grade-id');
             var studentId = $(this).closest('tr').data('student-id');
             var courseId = $(this).closest('tr').data('course-id');
             var score = $(this).closest('tr').data('score');
+            var studentName = $(this).closest('tr').find('td:eq(0)').text(); // Assuming student name is in first td
+            var courseName = $(this).closest('tr').find('td:eq(1)').text(); // Assuming course name is in second td
 
             $('#editGradeId').val(gradeId);
             $('#editGradeScore').val(score);
 
-            // Set student and trigger change to load courses
-            $('#editGradeStudentSelect').val(studentId).trigger('change');
+            // Set student dropdown directly
+            $('#editGradeStudentSelect').empty().append($('<option selected></option>').val(studentId).text(studentName));
 
-            // Store original courseId to select it after courses are loaded
-            $('#editGradeCourseSelect').data('original-course-id', courseId);
+            // Set course dropdown directly
+            $('#editGradeCourseSelect').empty().append($('<option selected></option>').val(courseId).text(courseName));
+
         });
 
-        $('#editGradeStudentSelect').on('change', function() {
-            var studentId = $(this).val();
-            var courseSelect = $('#editGradeCourseSelect');
-            var originalCourseId = courseSelect.data('original-course-id');
-
-            courseSelect.empty(); // Clear existing options
-            courseSelect.append('<option value="">选择课程</option>'); // Add default option
-
-            if (studentId) {
-                $.ajax({
-                    url: '/api/student/' + studentId + '/courses',
-                    type: 'GET',
-                    success: function(courses) {
-                        $.each(courses, function(index, course) {
-                            var option = $('<option></option>').val(course.id).text(course.name);
-                            if (course.id == originalCourseId) {
-                                option.attr('selected', 'selected');
-                            }
-                            courseSelect.append(option);
-                        });
-                        // Clear originalCourseId after use
-                        courseSelect.removeData('original-course-id');
-                    },
-                    error: function(xhr) {
-                        var errorData = JSON.parse(xhr.responseText);
-                        alert('错误: ' + errorData.error);
-                    }
-                });
-            }
-        });
-
-        // 保存编辑成绩
-        $('#saveEditedGradeBtn').on('click', function() {
+        // Handle save edited grade button click
+        $(document).on('click', '#saveEditedGradeBtn', function() {
             var gradeId = $('#editGradeId').val();
             var formData = $('#editGradeForm').serialize();
             $.ajax({
@@ -486,6 +482,67 @@
                     alert('错误: ' + errorData.error);
                 }
             });
+        });
+
+        // Load grades on page load (initially all grades)
+        loadGrades(0);
+
+        // Handle course filter change
+        $('#courseFilter').on('change', function() {
+            var courseId = $(this).val();
+            loadGrades(courseId);
+        });
+
+        // Function to load grades via AJAX
+        function loadGrades(courseId) {
+            $.ajax({
+                url: '/api/teacher/grades_by_course/' + courseId,
+                type: 'GET',
+                success: function(grades) {
+                    var tbody = $('#gradesTable tbody');
+                    tbody.empty(); // Clear existing rows
+
+                    if (grades.length > 0) {
+                        $.each(grades, function(index, grade) {
+                            var row = '<tr data-grade-id="' + grade.id + '" data-student-id="' + grade.student_id + '" data-course-id="' + grade.course_id + '" data-score="' + grade.score + '">';
+                            row += '<td>' + grade.student_name + '</td>';
+                            row += '<td>' + grade.course_name + '</td>';
+                            row += '<td>' + grade.score + '</td>';
+                            row += '<td>';
+                            row += '    <button class="btn btn-sm btn-warning edit-grade-btn" data-bs-toggle="modal" data-bs-target="#editGradeModal">编辑</button>';
+                            row += '    <button class="btn btn-sm btn-danger delete-grade-btn">删除</button>';
+                            row += '</td>';
+                            row += '</tr>';
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="4">暂无成绩信息。</td></tr>');
+                    }
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        }
+
+        // Handle delete grade button click (delegated for dynamically added elements)
+        $(document).on('click', '.delete-grade-btn', function() {
+            var gradeId = $(this).closest('tr').data('grade-id');
+            if (confirm('确定要删除该成绩吗？此操作不可撤销！')) {
+                $.ajax({
+                    url: '/teacher/grade/delete/' + gradeId,
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.message);
+                        location.reload(); // Reload the page to update the grades list
+                    },
+                    error: function(xhr) {
+                        var errorData = JSON.parse(xhr.responseText);
+                        alert('错误: ' + errorData.error);
+                    }
+                });
+            }
         });
     });
 </script>

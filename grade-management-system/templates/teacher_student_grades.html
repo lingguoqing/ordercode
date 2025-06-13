@@ -34,13 +34,12 @@
                 </thead>
                 <tbody>
                     {% for grade in grades %}
-                    <tr>
+                    <tr data-grade-id="{{ grade.id }}" data-student-id="{{ grade.student.id }}" data-course-id="{{ grade.course.id }}" data-score="{{ grade.score }}">
                         <td>{{ grade.course.name }}</td>
                         <td>{{ grade.score }}</td>
                         <td>
-                            <!-- 教师不能直接编辑学生成绩，只能通过管理员或重新录入 -->
-                            <button class="btn btn-sm btn-info" disabled>编辑</button>
-                            <button class="btn btn-sm btn-danger" disabled>删除</button>
+                            <button class="btn btn-sm btn-warning edit-grade-btn" data-bs-toggle="modal" data-bs-target="#editGradeModal">编辑</button>
+                            <button class="btn btn-sm btn-danger delete-grade-btn">删除</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -52,4 +51,105 @@
         </div>
     </div>
 </div>
+
+<!-- 编辑成绩模态框 (与 teacher_dashboard.html 中的相同) -->
+<div class="modal fade" id="editGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑成绩</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGradeForm">
+                    <input type="hidden" name="id" id="editGradeId">
+                    <div class="mb-3">
+                        <label class="form-label">学生</label>
+                        <select class="form-select" name="student_id" id="editGradeStudentSelect" required disabled>
+                            <option value="">{{ student.name }}</option> {# Display current student #}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">课程</label>
+                        <select class="form-select" name="course_id" id="editGradeCourseSelect" required disabled>
+                            <option value="">选择课程</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">成绩</label>
+                        <input type="number" class="form-control" name="score" id="editGradeScore" min="0" max="100" step="0.1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditedGradeBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Handle edit grade button click to populate modal
+    $(document).on('click', '.edit-grade-btn', function() {
+        var gradeId = $(this).closest('tr').data('grade-id');
+        var studentId = $(this).closest('tr').data('student-id');
+        var courseId = $(this).closest('tr').data('course-id');
+        var score = $(this).closest('tr').data('score');
+        var studentName = $(this).closest('tr').find('td:eq(0)').text(); // 获取学生姓名
+        var courseName = $(this).closest('tr').find('td:eq(1)').text(); // 获取课程名称
+
+        $('#editGradeId').val(gradeId);
+        $('#editGradeScore').val(score);
+
+        // 直接设置学生下拉菜单 (已禁用)
+        $('#editGradeStudentSelect').empty().append($('<option selected></option>').val(studentId).text(studentName));
+
+        // 直接设置课程下拉菜单 (已禁用)
+        $('#editGradeCourseSelect').empty().append($('<option selected></option>').val(courseId).text(courseName));
+    });
+
+    // Handle save edited grade button click
+    $(document).on('click', '#saveEditedGradeBtn', function() {
+        var gradeId = $('#editGradeId').val();
+        var formData = $('#editGradeForm').serialize();
+        $.ajax({
+            url: '/teacher/grade/edit/' + gradeId,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                alert(response.message);
+                $('#editGradeModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                var errorData = JSON.parse(xhr.responseText);
+                alert('错误: ' + errorData.error);
+            }
+        });
+    });
+
+    // Handle delete grade button click
+    $(document).on('click', '.delete-grade-btn', function() {
+        var gradeId = $(this).closest('tr').data('grade-id');
+        if (confirm('确定要删除该成绩吗？此操作不可撤销！')) {
+            $.ajax({
+                url: '/teacher/grade/delete/' + gradeId,
+                type: 'POST',
+                success: function(response) {
+                    alert(response.message);
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var errorData = JSON.parse(xhr.responseText);
+                    alert('错误: ' + errorData.error);
+                }
+            });
+        }
+    });
+});
+</script>
 {% endblock %} 

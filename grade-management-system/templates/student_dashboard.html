@@ -14,8 +14,11 @@
         <div class="tab-content">
             <div class="tab-pane fade show active" id="profile">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h4>个人信息</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            编辑信息
+                        </button>
                     </div>
                     <div class="card-body">
                         <p><strong>用户名：</strong> {{ current_user.username }}</p>
@@ -113,7 +116,7 @@
             <div class="tab-pane fade" id="grades">
                 <div class="card">
                     <div class="card-header">
-                        <h4>我的成绩</h4>
+                        <h4>我的成绩 - 成绩查询</h4>
                     </div>
                     <div class="card-body">
                         <table class="table">
@@ -129,11 +132,68 @@
                                     <td>{{ grade.course.name }}</td>
                                     <td>{{ grade.score }}</td>
                                 </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="2">暂无成绩信息。</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4>我的成绩 - 可视化图表</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="gradesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4>我的成绩 - 统计分析</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>平均分:</strong> <span id="averageScore">--</span></p>
+                        <p><strong>最高分:</strong> <span id="maxScore">--</span></p>
+                        <p><strong>最低分:</strong> <span id="minScore">--</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑个人信息模态框 -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑个人信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label class="form-label">姓名</label>
+                        <input type="text" class="form-control" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">新密码</label>
+                        <input type="password" class="form-control" name="new_password">
+                        <small class="text-muted">如果不修改密码，请留空</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveProfileBtn">保存</button>
             </div>
         </div>
     </div>
@@ -141,6 +201,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 $(document).ready(function() {
     // 使用事件委托处理报名课程按钮点击事件
@@ -179,6 +240,100 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    // Handle "我的成绩" tab activation for charts and statistics
+    $('a[data-bs-toggle="list"][href="#grades"]').on('shown.bs.tab', function (e) {
+        fetchGradesAndRenderChart();
+    });
+
+    // Initial load if "我的成绩" is the active tab on page load
+    if ($('a[data-bs-toggle="list"][href="#grades"]').hasClass('active')) {
+        fetchGradesAndRenderChart();
+    }
+
+    function fetchGradesAndRenderChart() {
+        $.ajax({
+            url: '/api/student/my_grades',
+            type: 'GET',
+            success: function(grades) {
+                var courseNames = grades.map(function(grade) { return grade.course_name; });
+                var scores = grades.map(function(grade) { return grade.score; });
+
+                // Render Chart
+                var ctx = document.getElementById('gradesChart').getContext('2d');
+                if (window.myGradesChart) {
+                    window.myGradesChart.destroy(); // Destroy existing chart if it exists
+                }
+                window.myGradesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: courseNames,
+                        datasets: [{
+                            label: '成绩',
+                            data: scores,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+
+                // Calculate and display statistics
+                if (scores.length > 0) {
+                    var totalScore = scores.reduce(function(sum, score) { return sum + score; }, 0);
+                    var average = (totalScore / scores.length).toFixed(2);
+                    var max = Math.max(...scores);
+                    var min = Math.min(...scores);
+
+                    $('#averageScore').text(average);
+                    $('#maxScore').text(max);
+                    $('#minScore').text(min);
+                } else {
+                    $('#averageScore').text('暂无');
+                    $('#maxScore').text('暂无');
+                    $('#minScore').text('暂无');
+                }
+            },
+            error: function(xhr) {
+                var errorData = JSON.parse(xhr.responseText);
+                alert('错误: ' + errorData.error);
+            }
+        });
+    }
+
+    // Handle edit profile button click to populate modal
+    $('#editProfileModal').on('show.bs.modal', function() {
+        $('#editProfileForm input[name="name"]').val('{{ current_user.name }}');
+        $('#editProfileForm input[name="email"]').val('{{ current_user.email }}');
+        $('#editProfileForm input[name="new_password"]').val(''); // Clear password field
+    });
+
+    // Handle save profile button click
+    $('#saveProfileBtn').on('click', function() {
+        var formData = $('#editProfileForm').serialize();
+        $.ajax({
+            url: '/student/profile/edit',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                alert(response.message);
+                $('#editProfileModal').modal('hide');
+                location.reload();
+            },
+            error: function(xhr) {
+                var errorData = JSON.parse(xhr.responseText);
+                alert('错误: ' + errorData.error);
+            }
+        });
     });
 });
 </script>

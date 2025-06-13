@@ -6,12 +6,14 @@ import pymysql
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import config
 
@@ -77,8 +79,8 @@ class Enrollment(db.Model):
 
     student_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'), primary_key=True)
-    operation_count = db.Column(db.Integer, nullable=False, default=0) # 每门课程的报名操作次数
-    is_active = db.Column(db.Boolean, nullable=False, default=True) # 是否处于活跃报名状态
+    operation_count = db.Column(db.Integer, nullable=False, default=0)  # 每门课程的报名操作次数
+    is_active = db.Column(db.Boolean, nullable=False, default=True)  # 是否处于活跃报名状态
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -584,6 +586,155 @@ def teacher_add_grade():
     return jsonify({'message': '成绩添加成功'})
 
 
+@app.route('/teacher/grade/edit/<int:grade_id>', methods=['POST'])
+@login_required
+def teacher_grade_edit(grade_id):
+    if current_user.role != 'teacher':
+        return jsonify({'error': '无权访问'}), 403
+
+    grade = Grade.query.get(grade_id)
+    if not grade:
+        return jsonify({'error': '成绩未找到'}), 404
+
+    # 确保教师是该成绩所在课程的授课教师
+    if grade.course.teacher_id != current_user.id:
+        return jsonify({'error': '无权编辑该成绩'}), 403
+
+    data = request.form
+    # student_id 和 course_id 在编辑时通常不会改变，但在模态框中是禁用的
+    # 这里主要关注成绩score的更新
+    score = data.get('score')
+
+    if not score:
+        return jsonify({'error': '成绩不能为空'}), 400
+
+    try:
+        score = float(score)
+        if not (0 <= score <= 100):
+            return jsonify({'error': '成绩必须在0-100之间'}), 400
+    except ValueError:
+        return jsonify({'error': '成绩必须是有效的数字'}), 400
+
+    grade.score = score
+
+    try:
+        db.session.commit()
+        return jsonify({'message': '成绩信息更新成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'更新失败: {str(e)}'}), 500
+
+
+@app.route('/teacher/grade/delete/<int:grade_id>', methods=['POST'])
+@login_required
+def teacher_grade_delete(grade_id):
+    if current_user.role != 'teacher':
+        return jsonify({'error': '无权访问'}), 403
+
+    grade = Grade.query.get(grade_id)
+    if not grade:
+        return jsonify({'error': '成绩未找到'}), 404
+
+    # 确保教师是该成绩所在课程的授课教师
+    if grade.course.teacher_id != current_user.id:
+        return jsonify({'error': '无权删除该成绩'}), 403
+
+    try:
+        db.session.delete(grade)
+        db.session.commit()
+        return jsonify({'message': '成绩删除成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'删除失败: {str(e)}'}), 500
+
+
+@app.route('/api/teacher/grades_by_course/<int:course_id>')
+@login_required
+def get_teacher_grades_by_course(course_id):
+    if current_user.role != 'teacher':
+        abort(403)
+
+    grades_query = Grade.query.join(Course).filter(Course.teacher_id == current_user.id)
+
+    if course_id != 0:
+        grades_query = grades_query.filter(Grade.course_id == course_id)
+
+    grades = grades_query.all()
+    grades_data = []
+    for grade in grades:
+        grades_data.append({
+            'id': grade.id,
+            'student_name': grade.student.name,
+            'student_id': grade.student.id,
+            'course_name': grade.course.name,
+            'course_id': grade.course.id,
+            'score': grade.score
+        })
+    return jsonify(grades_data)
+
+
+@app.route('/api/teacher/students_by_course/<int:course_id>')
+@login_required
+def get_teacher_students_by_course(course_id):
+    if current_user.role != 'teacher':
+        abort(403)
+
+    students_data = []
+    unique_student_ids = set()
+
+    # 获取当前教师的所有课程
+    teacher_courses = Course.query.filter_by(teacher_id=current_user.id).all()
+    teacher_course_ids = [c.id for c in teacher_courses]
+
+    if course_id != 0:
+        # 如果指定了课程ID，则只考虑该课程下的学生
+        if course_id not in teacher_course_ids:
+            return jsonify({'error': '您无权查看该课程的学生'}), 403
+
+        enrollments = Enrollment.query.filter_by(course_id=course_id, is_active=True).all()
+        for enrollment in enrollments:
+            if enrollment.student_id not in unique_student_ids:
+                student = enrollment.student
+                # 获取学生在该课程的成绩
+                grade = Grade.query.filter_by(student_id=student.id, course_id=course_id).first()
+                students_data.append({
+                    'id': student.id,
+                    'name': student.name,
+                    'email': student.email,
+                    'enrolled_courses': [enrollment.course.name],
+                    'grade_for_selected_course': grade.score if grade else '暂无'
+                })
+                unique_student_ids.add(student.id)
+    else:
+        # 如果未指定课程ID，则获取当前教师所有课程下的学生
+        # 遍历教师的所有课程
+        for course in teacher_courses:
+            # 获取该课程下的活跃报名
+            enrollments = Enrollment.query.filter_by(course_id=course.id, is_active=True).all()
+            for enrollment in enrollments:
+                if enrollment.student_id not in unique_student_ids:
+                    student = enrollment.student
+                    # 获取学生在该课程的成绩
+                    grade = Grade.query.filter_by(student_id=student.id, course_id=course.id).first()
+                    # 获取学生在该教师所有课程下的所有活跃课程
+                    student_all_active_enrollments = Enrollment.query.filter_by(student_id=student.id,
+                                                                                is_active=True).all()
+                    enrolled_course_names = [e.course.name for e in student_all_active_enrollments if
+                                             e.course.teacher_id == current_user.id]
+
+                    students_data.append({
+                        'id': student.id,
+                        'name': student.name,
+                        'email': student.email,
+                        'enrolled_courses': enrolled_course_names,
+                        'grade_for_selected_course': grade.score if grade else '暂无'
+                        # This is not perfectly accurate for 'All Courses'
+                    })
+                    unique_student_ids.add(student.id)
+
+    return jsonify(students_data)
+
+
 @app.route('/teacher/grade/report/<int:student_id>')
 @login_required
 def generate_grade_report(student_id):
@@ -594,16 +745,25 @@ def generate_grade_report(student_id):
     grades = Grade.query.filter_by(student_id=student_id).join(Course).filter(
         Course.teacher_id == current_user.id).all()
 
+    # 注册中文字体
+    font_path = os.path.join(app.root_path, 'fonts', 'SimHei.ttf')
+    try:
+        pdfmetrics.registerFont(TTFont('SimHei', font_path))
+    except Exception as e:
+        # 如果字体文件不存在或注册失败，可以考虑记录日志或返回错误信息
+        print(f"字体注册失败: {e}. 请确保 'SimHei.ttf' 字体文件位于项目根目录下的 'fonts' 文件夹中。")
+        return jsonify({'error': '生成成绩单失败：字体文件未找到或无法加载。'}), 500
+
     # 创建PDF
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
     # 添加标题
-    p.setFont("Helvetica-Bold", 16)
+    p.setFont("SimHei", 16)
     p.drawString(100, 750, f"{student.name}的成绩单")
 
     # 添加成绩信息
-    p.setFont("Helvetica", 12)
+    p.setFont("SimHei", 12)
     y = 700
     for grade in grades:
         p.drawString(100, y, f"课程：{grade.course.name}")
@@ -628,7 +788,7 @@ def student_dashboard():
     if current_user.role != 'student':
         flash('无权访问')
         return redirect(url_for('index'))
-    
+
     all_courses = Course.query.all()
     # 获取学生已报名的课程以及对应的操作次数
     student_enrollments = {e.course_id: e for e in current_user.enrollments}
@@ -637,22 +797,34 @@ def student_dashboard():
 
 @app.route('/student/profile/edit', methods=['POST'])
 @login_required
-def edit_student_profile():
+def student_edit_profile():
     if current_user.role != 'student':
-        return jsonify({'error': '无权访问'}), 403
+        abort(403)
 
-    data = request.form
-    if not all([data.get('name'), data.get('email')]):
+    name = request.form.get('name')
+    email = request.form.get('email')
+    new_password = request.form.get('new_password')
+
+    if not name or not email:
         return jsonify({'error': '姓名和邮箱不能为空'}), 400
 
-    current_user.name = data['name']
-    current_user.email = data['email']
+    # 检查邮箱是否已被其他用户使用 (除了当前用户自己)
+    existing_user = User.query.filter(User.email == email, User.id != current_user.id).first()
+    if existing_user:
+        return jsonify({'error': '该邮箱已被注册'}), 400
 
-    if data.get('new_password'):
-        current_user.set_password(data['new_password'])
+    current_user.name = name
+    current_user.email = email
 
-    db.session.commit()
-    return jsonify({'message': '个人信息更新成功'})
+    if new_password:
+        current_user.password = generate_password_hash(new_password)
+
+    try:
+        db.session.commit()
+        return jsonify({'message': '个人信息更新成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'更新失败: {str(e)}'}), 500
 
 
 @app.route('/student/course/enroll/<int:course_id>', methods=['POST'])
@@ -673,7 +845,7 @@ def student_enroll_course(course_id):
             # 如果记录存在，检查操作次数限制
             if enrollment.operation_count >= 3:
                 return jsonify({'error': '该课程已达操作上限，无法再次报名'}), 400
-            
+
             # 如果已存在但不是活跃状态（之前取消过），则重新激活
             if not enrollment.is_active:
                 enrollment.is_active = True
@@ -688,7 +860,7 @@ def student_enroll_course(course_id):
             # 检查课程是否已满
             if len(course.enrollments) >= course.max_students:
                 return jsonify({'error': '课程名额已满'}), 400
-            
+
             new_enrollment = Enrollment(
                 student_id=current_user.id,
                 course_id=course_id,
@@ -756,6 +928,21 @@ def get_student_courses(student_id):
         if course:
             courses.append({'id': course.id, 'name': course.name})
     return jsonify(courses)
+
+
+@app.route('/api/student/my_grades')
+@login_required
+def get_my_grades():
+    if current_user.role != 'student':
+        abort(403)
+
+    grades_data = []
+    for grade in current_user.grades:
+        grades_data.append({
+            'course_name': grade.course.name,
+            'score': grade.score
+        })
+    return jsonify(grades_data)
 
 
 if __name__ == '__main__':
