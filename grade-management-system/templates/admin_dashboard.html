@@ -78,14 +78,20 @@
                                 <tr>
                                     <th>课程名称</th>
                                     <th>授课教师</th>
+                                    <th>最大人数</th>
+                                    <th>已报名人数</th>
+                                    <th>剩余名额</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for course in courses %}
-                                <tr data-course-id="{{ course.id }}" data-teacher-id="{{ course.teacher.id if course.teacher else '' }}">
+                                <tr data-course-id="{{ course.id }}" data-teacher-id="{{ course.teacher.id if course.teacher else '' }}" data-max-students="{{ course.max_students }}">
                                     <td>{{ course.name }}</td>
                                     <td>{{ course.teacher.name if course.teacher else '未分配' }}</td>
+                                    <td>{{ course.max_students }}</td>
+                                    <td>{{ course.students|length }}</td>
+                                    <td>{{ course.max_students - course.students|length }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-warning edit-course-btn" data-bs-toggle="modal" data-bs-target="#editCourseModal">编辑</button>
                                         <button class="btn btn-sm btn-danger delete-course-btn">删除</button>
@@ -282,6 +288,10 @@
                             <option value="{{ teacher.id }}">{{ teacher.name }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">最大学生数量</label>
+                        <input type="number" class="form-control" name="max_students" id="editCourseMaxStudents" min="1" required>
                     </div>
                 </form>
             </div>
@@ -498,10 +508,12 @@
             var courseId = $(this).closest('tr').data('course-id');
             var courseName = $(this).closest('tr').find('td:eq(0)').text();
             var teacherId = $(this).closest('tr').data('teacher-id');
+            var maxStudents = $(this).closest('tr').data('max-students');
 
             $('#editCourseId').val(courseId);
             $('#editCourseName').val(courseName);
-            $('#editCourseTeacher').val(teacherId); // 设置下拉框选中值
+            $('#editCourseTeacher').val(teacherId);
+            $('#editCourseMaxStudents').val(maxStudents);
         });
 
         // 保存编辑课程按钮点击事件

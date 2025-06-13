@@ -28,10 +28,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+
 # 用户模型
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -40,7 +41,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     courses = db.relationship('Course', backref='teacher', lazy=True)
     grades = db.relationship('Grade', backref='student', lazy=True, cascade='all, delete-orphan')
 
@@ -50,30 +51,36 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 # 课程模型
 class Course(db.Model):
     __tablename__ = 'courses'
-    
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(80), nullable=False, index=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+    max_students = db.Column(db.Integer, nullable=False, default=50)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     students = db.relationship('User', secondary='course_student', backref='enrolled_courses')
     grades = db.relationship('Grade', backref='course', lazy=True, cascade='all, delete-orphan')
 
+
 # 课程-学生关联表
 course_student = db.Table('course_student',
-    db.Column('course_id', db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow)
-)
+                          db.Column('course_id', db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'),
+                                    primary_key=True),
+                          db.Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
+                                    primary_key=True),
+                          db.Column('created_at', db.DateTime, default=datetime.utcnow)
+                          )
+
 
 # 成绩模型
 class Grade(db.Model):
     __tablename__ = 'grades'
-    
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), index=True)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE'), index=True)
@@ -85,15 +92,18 @@ class Grade(db.Model):
         db.UniqueConstraint('student_id', 'course_id', name='unique_student_course'),
     )
 
+
 @login_manager.user_loader
 def load_user(user_id):
     if user_id is None:
         return None
     return User.query.get(int(user_id))
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -121,6 +131,7 @@ def register():
 
     return render_template('register.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -145,11 +156,13 @@ def login():
         flash('用户名或密码错误')
     return render_template('login.html')
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
 
 # 管理员路由
 @app.route('/admin/dashboard')
@@ -158,26 +171,27 @@ def admin_dashboard():
     if current_user.role != 'admin':
         flash('无权访问')
         return redirect(url_for('index'))
-    
+
     users = User.query.all()
     courses = Course.query.all()
     grades = Grade.query.all()
     teachers = User.query.filter_by(role='teacher').all()
     students = User.query.filter_by(role='student').all()
-    
-    return render_template('admin_dashboard.html', 
-                         users=users, 
-                         courses=courses, 
-                         grades=grades,
-                         teachers=teachers,
-                         students=students)
+
+    return render_template('admin_dashboard.html',
+                           users=users,
+                           courses=courses,
+                           grades=grades,
+                           teachers=teachers,
+                           students=students)
+
 
 @app.route('/admin/user/add', methods=['POST'])
 @login_required
 def add_user():
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not all([data.get('username'), data.get('password'), data.get('role'), data.get('name'), data.get('email')]):
         return jsonify({'error': '所有字段都必须填写'}), 400
@@ -189,22 +203,23 @@ def add_user():
         email=data['email']
     )
     user.set_password(data['password'])
-    
+
     db.session.add(user)
     db.session.commit()
-    
+
     return jsonify({'message': '用户添加成功'})
+
 
 @app.route('/admin/user/edit/<int:user_id>', methods=['POST'])
 @login_required
 def admin_user_edit(user_id):
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     user = User.query.get(user_id)
     if not user:
         return jsonify({'error': '用户未找到'}), 404
-    
+
     data = request.form
     username = data.get('username')
     name = data.get('name')
@@ -231,20 +246,21 @@ def admin_user_edit(user_id):
 
     if new_password:
         user.set_password(new_password)
-    
+
     db.session.commit()
     return jsonify({'message': '用户信息更新成功'})
+
 
 @app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
 @login_required
 def admin_user_delete(user_id):
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     user = User.query.get(user_id)
     if not user:
         return jsonify({'error': '用户未找到'}), 404
-    
+
     try:
         db.session.delete(user)
         db.session.commit()
@@ -253,12 +269,13 @@ def admin_user_delete(user_id):
         db.session.rollback()
         return jsonify({'error': f'删除用户失败: {str(e)}'}), 500
 
+
 @app.route('/admin/course/add', methods=['POST'])
 @login_required
 def add_course():
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not data.get('name'):
         return jsonify({'error': '课程名称不能为空'}), 400
@@ -267,49 +284,60 @@ def add_course():
         name=data['name'],
         teacher_id=data.get('teacher_id') if data.get('teacher_id') else None
     )
-    
+
     db.session.add(course)
     db.session.commit()
-    
+
     return jsonify({'message': '课程添加成功'})
+
 
 @app.route('/admin/course/edit/<int:course_id>', methods=['POST'])
 @login_required
 def admin_course_edit(course_id):
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     course = Course.query.get(course_id)
     if not course:
         return jsonify({'error': '课程未找到'}), 404
-    
+
     data = request.form
     name = data.get('name')
     teacher_id = data.get('teacher_id')
+    max_students = data.get('max_students')
 
     if not name:
         return jsonify({'error': '课程名称不能为空'}), 400
+
+    if not max_students or not max_students.isdigit() or int(max_students) < 1:
+        return jsonify({'error': '最大学生数量必须是大于0的整数'}), 400
 
     # 检查课程名称是否重复 (排除当前课程)
     if Course.query.filter(Course.name == name, Course.id != course_id).first():
         return jsonify({'error': '课程名称已存在'}), 400
 
+    # 检查新的最大学生数量是否小于当前学生数量
+    if int(max_students) < len(course.students):
+        return jsonify({'error': '最大学生数量不能小于当前报名人数'}), 400
+
     course.name = name
     course.teacher_id = int(teacher_id) if teacher_id else None
-    
+    course.max_students = int(max_students)
+
     db.session.commit()
     return jsonify({'message': '课程信息更新成功'})
+
 
 @app.route('/admin/course/delete/<int:course_id>', methods=['POST'])
 @login_required
 def admin_course_delete(course_id):
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     course = Course.query.get(course_id)
     if not course:
         return jsonify({'error': '课程未找到'}), 404
-    
+
     try:
         db.session.delete(course)
         db.session.commit()
@@ -318,12 +346,13 @@ def admin_course_delete(course_id):
         db.session.rollback()
         return jsonify({'error': f'删除课程失败: {str(e)}'}), 500
 
+
 @app.route('/admin/grade/add', methods=['POST'])
 @login_required
 def add_grade():
     if current_user.role != 'admin':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not all([data.get('student_id'), data.get('course_id'), data.get('score')]):
         return jsonify({'error': '所有字段都必须填写'}), 400
@@ -340,11 +369,12 @@ def add_grade():
         course_id=int(data['course_id']),
         score=score
     )
-    
+
     db.session.add(grade)
     db.session.commit()
-    
+
     return jsonify({'message': '成绩添加成功'})
+
 
 @app.route('/admin/grade/edit/<int:grade_id>', methods=['POST'])
 @login_required
@@ -378,7 +408,8 @@ def admin_grade_edit(grade_id):
         return jsonify({'error': '学生或课程不存在'}), 400
 
     # 检查是否存在重复的成绩记录 (排除当前成绩)
-    if Grade.query.filter(Grade.student_id == int(student_id), Grade.course_id == int(course_id), Grade.id != grade_id).first():
+    if Grade.query.filter(Grade.student_id == int(student_id), Grade.course_id == int(course_id),
+                          Grade.id != grade_id).first():
         return jsonify({'error': '该学生该课程的成绩已存在'}), 400
 
     grade.student_id = int(student_id)
@@ -387,6 +418,7 @@ def admin_grade_edit(grade_id):
 
     db.session.commit()
     return jsonify({'message': '成绩信息更新成功'})
+
 
 @app.route('/admin/grade/delete/<int:grade_id>', methods=['POST'])
 @login_required
@@ -406,6 +438,7 @@ def admin_grade_delete(grade_id):
         db.session.rollback()
         return jsonify({'error': f'删除成绩失败: {str(e)}'}), 500
 
+
 # 教师路由
 @app.route('/teacher/dashboard')
 @login_required
@@ -413,34 +446,36 @@ def teacher_dashboard():
     if current_user.role != 'teacher':
         flash('无权访问')
         return redirect(url_for('index'))
-    
+
     courses = Course.query.filter_by(teacher_id=current_user.id).all()
     students = User.query.filter_by(role='student').all()
     grades = Grade.query.join(Course).filter(Course.teacher_id == current_user.id).all()
-    
+
     return render_template('teacher_dashboard.html',
-                         courses=courses,
-                         students=students,
-                         grades=grades)
+                           courses=courses,
+                           students=students,
+                           grades=grades)
+
 
 @app.route('/teacher/profile/edit', methods=['POST'])
 @login_required
 def edit_teacher_profile():
     if current_user.role != 'teacher':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not all([data.get('name'), data.get('email')]):
         return jsonify({'error': '姓名和邮箱不能为空'}), 400
 
     current_user.name = data['name']
     current_user.email = data['email']
-    
+
     if data.get('new_password'):
         current_user.set_password(data['new_password'])
-    
+
     db.session.commit()
     return jsonify({'message': '个人信息更新成功'})
+
 
 @app.route('/teacher/course/edit/<int:course_id>', methods=['POST'])
 @login_required
@@ -454,17 +489,27 @@ def teacher_course_edit(course_id):
 
     data = request.form
     name = data.get('name')
+    max_students = data.get('max_students')
 
     if not name:
         return jsonify({'error': '课程名称不能为空'}), 400
+
+    if not max_students or not max_students.isdigit() or int(max_students) < 1:
+        return jsonify({'error': '最大学生数量必须是大于0的整数'}), 400
 
     # 检查课程名称是否重复 (排除当前课程)
     if Course.query.filter(Course.name == name, Course.id != course_id).first():
         return jsonify({'error': '课程名称已存在'}), 400
 
+    # 检查新的最大学生数量是否小于当前学生数量
+    if int(max_students) < len(course.students):
+        return jsonify({'error': '最大学生数量不能小于当前报名人数'}), 400
+
     course.name = name
+    course.max_students = int(max_students)
     db.session.commit()
     return jsonify({'message': '课程信息更新成功'})
+
 
 @app.route('/teacher/course/detail/<int:course_id>')
 @login_required
@@ -481,25 +526,28 @@ def teacher_course_detail(course_id):
 
     return render_template('teacher_course_detail.html', course=course)
 
+
 @app.route('/teacher/student/grades/<int:student_id>')
 @login_required
 def teacher_student_grades(student_id):
     if current_user.role != 'teacher':
         flash('无权访问')
         return redirect(url_for('index'))
-    
+
     student = User.query.get_or_404(student_id)
     # 获取该学生由当前教师教授的课程的成绩
-    grades = Grade.query.filter_by(student_id=student_id).join(Course).filter(Course.teacher_id == current_user.id).all()
-    
+    grades = Grade.query.filter_by(student_id=student_id).join(Course).filter(
+        Course.teacher_id == current_user.id).all()
+
     return render_template('teacher_student_grades.html', student=student, grades=grades)
+
 
 @app.route('/teacher/grade/add', methods=['POST'])
 @login_required
 def teacher_add_grade():
     if current_user.role != 'teacher':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not all([data.get('student_id'), data.get('course_id'), data.get('score')]):
         return jsonify({'error': '所有字段都必须填写'}), 400
@@ -514,35 +562,37 @@ def teacher_add_grade():
     course = Course.query.get(int(data['course_id']))
     if not course or course.teacher_id != current_user.id:
         return jsonify({'error': '无权操作此课程'}), 403
-    
+
     grade = Grade(
         student_id=int(data['student_id']),
         course_id=int(data['course_id']),
         score=score
     )
-    
+
     db.session.add(grade)
     db.session.commit()
-    
+
     return jsonify({'message': '成绩添加成功'})
+
 
 @app.route('/teacher/grade/report/<int:student_id>')
 @login_required
 def generate_grade_report(student_id):
     if current_user.role != 'teacher':
         return jsonify({'error': '无权访问'}), 403
-    
+
     student = User.query.get_or_404(student_id)
-    grades = Grade.query.filter_by(student_id=student_id).join(Course).filter(Course.teacher_id == current_user.id).all()
-    
+    grades = Grade.query.filter_by(student_id=student_id).join(Course).filter(
+        Course.teacher_id == current_user.id).all()
+
     # 创建PDF
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
-    
+
     # 添加标题
     p.setFont("Helvetica-Bold", 16)
     p.drawString(100, 750, f"{student.name}的成绩单")
-    
+
     # 添加成绩信息
     p.setFont("Helvetica", 12)
     y = 700
@@ -550,16 +600,17 @@ def generate_grade_report(student_id):
         p.drawString(100, y, f"课程：{grade.course.name}")
         p.drawString(300, y, f"成绩：{grade.score}")
         y -= 20
-    
+
     p.save()
     buffer.seek(0)
-    
+
     return send_file(
         buffer,
         as_attachment=True,
         download_name=f"{student.name}_成绩单.pdf",
         mimetype='application/pdf'
     )
+
 
 # 学生路由
 @app.route('/student/dashboard')
@@ -568,10 +619,10 @@ def student_dashboard():
     if current_user.role != 'student':
         flash('无权访问')
         return redirect(url_for('index'))
-    
+
     courses = current_user.enrolled_courses
     grades = Grade.query.filter_by(student_id=current_user.id).all()
-    
+
     # 计算成绩统计
     scores = [grade.score for grade in grades]
     stats = {
@@ -580,7 +631,7 @@ def student_dashboard():
         'lowest': min(scores) if scores else 0,
         'pass_rate': round(len([s for s in scores if s >= 60]) / len(scores) * 100 if scores else 0, 2)
     }
-    
+
     # 计算成绩分布
     distribution = [0] * 5
     for score in scores:
@@ -594,35 +645,37 @@ def student_dashboard():
             distribution[3] += 1
         else:
             distribution[4] += 1
-    
+
     return render_template('student_dashboard.html',
-                         courses=courses,
-                         grades=grades,
-                         stats=stats,
-                         grade_distribution=distribution,
-                         course_names=[grade.course.name for grade in grades],
-                         course_scores=[grade.score for grade in grades])
+                           courses=courses,
+                           grades=grades,
+                           stats=stats,
+                           grade_distribution=distribution,
+                           course_names=[grade.course.name for grade in grades],
+                           course_scores=[grade.score for grade in grades])
+
 
 @app.route('/student/profile/edit', methods=['POST'])
 @login_required
 def edit_student_profile():
     if current_user.role != 'student':
         return jsonify({'error': '无权访问'}), 403
-    
+
     data = request.form
     if not all([data.get('name'), data.get('email')]):
         return jsonify({'error': '姓名和邮箱不能为空'}), 400
 
     current_user.name = data['name']
     current_user.email = data['email']
-    
+
     if data.get('new_password'):
         current_user.set_password(data['new_password'])
-    
+
     db.session.commit()
     return jsonify({'message': '个人信息更新成功'})
+
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True) 
+    app.run(debug=True)

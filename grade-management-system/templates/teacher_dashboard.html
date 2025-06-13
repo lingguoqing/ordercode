@@ -39,15 +39,19 @@
                             <thead>
                                 <tr>
                                     <th>课程名称</th>
-                                    <th>学生数量</th>
+                                    <th>最大人数</th>
+                                    <th>已报名人数</th>
+                                    <th>剩余名额</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for course in courses %}
-                                <tr data-course-id="{{ course.id }}">
+                                <tr data-course-id="{{ course.id }}" data-max-students="{{ course.max_students }}">
                                     <td>{{ course.name }}</td>
+                                    <td>{{ course.max_students }}</td>
                                     <td>{{ course.students|length }}</td>
+                                    <td>{{ course.max_students - course.students|length }}</td>
                                     <td>
                                         <button class="btn btn-sm btn-info view-course-details-btn">查看详情</button>
                                         <button class="btn btn-sm btn-warning edit-teacher-course-btn" data-bs-toggle="modal" data-bs-target="#editTeacherCourseModal">编辑</button>
@@ -200,6 +204,10 @@
                         <label class="form-label">课程名称</label>
                         <input type="text" class="form-control" name="name" id="editTeacherCourseName" required>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">最大学生数量</label>
+                        <input type="number" class="form-control" name="max_students" id="editTeacherCourseMaxStudents" min="1" required>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -304,9 +312,11 @@
         $('.edit-teacher-course-btn').on('click', function() {
             var courseId = $(this).closest('tr').data('course-id');
             var courseName = $(this).closest('tr').find('td:eq(0)').text();
+            var maxStudents = $(this).closest('tr').data('max-students');
 
             $('#editTeacherCourseId').val(courseId);
             $('#editTeacherCourseName').val(courseName);
+            $('#editTeacherCourseMaxStudents').val(maxStudents);
         });
 
         // 保存编辑教师课程按钮点击事件

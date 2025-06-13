@@ -15,7 +15,9 @@
         </div>
         <div class="card-body">
             <p><strong>授课教师:</strong> {{ course.teacher.name if course.teacher else '未分配' }}</p>
-            <p><strong>学生数量:</strong> {{ course.students|length }}</p>
+            <p><strong>当前报名人数:</strong> {{ course.students|length }}</p>
+            <p><strong>最大学生数量:</strong> {{ course.max_students }}</p>
+            <p><strong>剩余名额:</strong> {{ course.max_students - course.students|length }}</p>
         </div>
     </div>
 
