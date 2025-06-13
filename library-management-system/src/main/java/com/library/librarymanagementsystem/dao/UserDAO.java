@@ -83,24 +83,20 @@ public class UserDAO {
     }
 
     public void updateUser(User user) throws SQLException {
-        String sql = "UPDATE users SET username = ?, password = ?, email = ?, phone = ?, " +
+        String sql = "UPDATE users SET username = ?, email = ?, phone = ?, " +
                     "real_name = ?, gender = ?, birth_date = ?, address = ? WHERE id = ?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            // 对密码进行哈希处理
-            String hashedPassword = passwordEncoder.encode(user.getPassword());
-            
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, hashedPassword);
-            pstmt.setString(3, user.getEmail());
-            pstmt.setString(4, user.getPhone());
-            pstmt.setString(5, user.getRealName());
-            pstmt.setString(6, user.getGender());
-            pstmt.setDate(7, user.getBirthDate() != null ? new java.sql.Date(user.getBirthDate().getTime()) : null);
-            pstmt.setString(8, user.getAddress());
-            pstmt.setInt(9, user.getId());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, user.getPhone());
+            pstmt.setString(4, user.getRealName());
+            pstmt.setString(5, user.getGender());
+            pstmt.setDate(6, user.getBirthDate() != null ? new java.sql.Date(user.getBirthDate().getTime()) : null);
+            pstmt.setString(7, user.getAddress());
+            pstmt.setInt(8, user.getId());
             
             pstmt.executeUpdate();
         }

@@ -13,23 +13,18 @@
     
     User currentUser = (User) session.getAttribute("user");
     String username = request.getParameter("username");
-    String password = request.getParameter("password");
-    String confirmPassword = request.getParameter("confirmPassword");
+    String email = request.getParameter("email");
+    String realName = request.getParameter("realName");
+    String phone = request.getParameter("phone");
+    String gender = request.getParameter("gender");
+    String birthDate = request.getParameter("birthDate");
+    String address = request.getParameter("address");
     
     // 验证用户名是否为空
     if (username == null || username.trim().isEmpty()) {
         request.setAttribute("errorMessage", "用户名不能为空。");
         request.getRequestDispatcher("edit-profile.jsp").forward(request, response);
         return;
-    }
-    
-    // 如果输入了新密码，验证两次输入的密码是否一致
-    if (password != null && !password.isEmpty()) {
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("errorMessage", "两次输入的密码不一致。");
-            request.getRequestDispatcher("edit-profile.jsp").forward(request, response);
-            return;
-        }
     }
     
     UserDAO userDAO = new UserDAO();
@@ -43,9 +38,14 @@
         
         // 更新用户信息
         currentUser.setUsername(username);
-        if (password != null && !password.isEmpty()) {
-            currentUser.setPassword(password);
+        currentUser.setEmail(email);
+        currentUser.setRealName(realName);
+        currentUser.setPhone(phone);
+        currentUser.setGender(gender);
+        if (birthDate != null && !birthDate.isEmpty()) {
+            currentUser.setBirthDate(java.sql.Date.valueOf(birthDate));
         }
+        currentUser.setAddress(address);
         
         userDAO.updateUser(currentUser);
         

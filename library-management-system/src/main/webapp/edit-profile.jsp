@@ -68,19 +68,6 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">新密码</label>
-                                    <input type="password" class="form-control" id="password" name="password" 
-                                           placeholder="如果不修改密码请留空">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="confirmPassword" class="form-label">确认新密码</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
-                                           placeholder="如果不修改密码请留空">
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
                                     <label for="realName" class="form-label">真实姓名</label>
                                     <input type="text" class="form-control" id="realName" name="realName" 
                                            value="<%= currentUser.getRealName() != null ? currentUser.getRealName() : "" %>">
