@@ -9,7 +9,7 @@ class Config:
     
     # MySQL数据库配置
     SQLALCHEMY_DATABASE_URI = (
-        f"mysql+pymysql://root:WfEdcNutanix09@localhost:3306/grade_management"
+        f"mysql+pymysql://root:123456@localhost:3306/grade_management"
         "?charset=utf8mb4"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
