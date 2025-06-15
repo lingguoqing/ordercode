@@ -1,0 +1,239 @@
+/* 全局样式 */
+body {
+    background-color: #f8f9fa;
+}
+
+/* 导航栏样式 */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+}
+
+/* 表格样式 */
+.table {
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    border-radius: 4px;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+.btn i {
+    margin-right: 4px;
+}
+
+/* 模态框样式 */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* 表单样式 */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* 分页样式 */
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    color: #007bff;
+    border: 1px solid #dee2e6;
+}
+
+.page-link:hover {
+    color: #0056b3;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* 搜索框样式 */
+.input-group {
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.input-group .form-control {
+    border-right: none;
+}
+
+.input-group .btn {
+    border-left: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .table-responsive {
+        margin: 0 -10px;
+    }
+    
+    .modal-dialog {
+        margin: 10px;
+    }
+}
+
+/* Toast 提示框样式 */
+.toast-container {
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 400px;
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.toast.success {
+    background-color: rgba(40, 167, 69, 0.95);
+}
+
+.toast.error {
+    background-color: rgba(220, 53, 69, 0.95);
+}
+
+.toast.warning {
+    background-color: rgba(255, 193, 7, 0.95);
+    color: #000;
+}
+
+.toast.info {
+    background-color: rgba(23, 162, 184, 0.95);
+}
+
+.toast-body {
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 1.25rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-body i {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.toast.success .toast-body i {
+    color: #fff;
+}
+
+.toast.error .toast-body i {
+    color: #fff;
+}
+
+.toast.warning .toast-body i {
+    color: #000;
+}
+
+.toast.info .toast-body i {
+    color: #fff;
+}
+
+.btn-close-white {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.btn-close-white:hover {
+    opacity: 1;
+}
+
+/* 动画效果 */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes fadeOutScale {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+.toast.show {
+    animation: fadeInScale 0.3s ease-in-out;
+}
+
+.toast.hide {
+    animation: fadeOutScale 0.3s ease-in-out;
+}
+
+/* 添加遮罩层 */
+.toast-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.toast.show + .toast-container::before {
+    opacity: 1;
+} 
