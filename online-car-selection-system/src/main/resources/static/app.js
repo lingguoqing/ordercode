@@ -727,8 +727,9 @@ async function fetchCarDetails(carId) {
 
             singleCarItemDisplay.appendChild(buttonGroup);
 
-            carDetailContainer.style.display = 'block';
-            console.log('Car detail container display set to block.');
+            // 确保显示车辆详情容器，并隐藏其他所有内容区域
+            showSection('car-detail-container'); 
+            console.log('Called showSection for car-detail-container.');
         } else {
             displayMessage(data.message, 'error');
             showSection('cars-tab'); 
