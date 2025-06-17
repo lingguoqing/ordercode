@@ -524,7 +524,7 @@ async function fetchFavorites() {
                     favoriteItem.className = 'list-item';
                     favoriteItem.innerHTML = `
                         <h3>收藏车辆 ID: ${favorite.carId}</h3>
-                        <p>收藏时间: ${new Date(favorite.createdAt).toLocaleString()}</p>
+                        <p>收藏时间: ${new Date(favorite.favoriteTime).toLocaleString()}</p>
                         <button class="cancel-favorite-button" data-favorite-id="${favorite.favoriteId}">取消收藏</button>
                     `;
                     favoritesContainer.appendChild(favoriteItem);
@@ -776,7 +776,8 @@ async function checkIfCarIsAppointed(carId) {
             }
         });
         const data = await response.json();
-        return data.success && data.data; 
+        // 检查data.data是否为数组且长度大于0
+        return data.success && Array.isArray(data.data) && data.data.length > 0; 
     } catch (error) {
         console.error('检查预约状态失败:', error);
         return false;

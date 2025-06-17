@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -24,6 +25,8 @@ public class FavoriteController {
         if (favoriteService.isCarAlreadyFavorited(favorite.getUserId(), favorite.getCarId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Car already favorited by this user!"));
         }
+        // 设置收藏时间为当前时间
+        favorite.setFavoriteTime(LocalDateTime.now());
 
         favoriteService.save(favorite);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Favorite created successfully!", favorite));
