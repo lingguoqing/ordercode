@@ -1,9 +1,9 @@
 package com.car.onlinecarselectionsystem.service;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.car.onlinecarselectionsystem.entity.Car;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 
 public interface CarService extends IService<Car> {
     // 可以添加自定义的车辆服务方法，如果需要的话
