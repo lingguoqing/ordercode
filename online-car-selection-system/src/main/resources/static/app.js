@@ -136,11 +136,13 @@ function showSection(sectionId) {
             loginForm.style.display = 'block';
             showLoginFormButton.classList.add('active');
         }
-    } else { // Handle car-related sections (tabs or car detail)
+    } else { // Handle car-related sections (tabs, car detail, or appointment form)
         authSection.style.display = 'none';
-        carSection.style.display = 'block';
+        carSection.style.display = 'block'; // Ensure the main car section is visible
 
-        // Check if the sectionId corresponds to a tab-content or car detail
+        // Note: carDetailContainer and appointmentFormContainer are explicitly hidden at the start of this function.
+        // We need to re-show them if they are the target or a parent of the target.
+
         const targetElement = document.getElementById(sectionId);
         if (targetElement) {
             targetElement.style.display = 'block';
@@ -148,6 +150,13 @@ function showSection(sectionId) {
             // Special handling for cars-tab to show pagination
             if (sectionId === 'cars-tab' && paginationControls) {
                 paginationControls.style.display = 'flex';
+            }
+
+            // If the target is car-detail-container or appointment-form-container, ensure car-detail-container is visible
+            if (sectionId === 'car-detail-container' || sectionId === 'appointment-form-container') {
+                if (carDetailContainer) {
+                    carDetailContainer.style.display = 'block';
+                }
             }
         }
     }
@@ -718,9 +727,9 @@ async function fetchCarDetails(carId) {
             appointmentButton.addEventListener('click', () => {
                 if (!isAppointed) {
                     appointmentCarIdInput.value = carId;
-                    carDetailContainer.style.display = 'none'; 
-                    appointmentFormContainer.style.display = 'block'; 
-                    console.log('Appointment button clicked. Showing appointment form.');
+                    // 使用 showSection 来统一管理显示和隐藏
+                    showSection('appointment-form-container'); 
+                    console.log('Appointment button clicked. Showing appointment form container via showSection.');
                 }
             });
             buttonGroup.appendChild(appointmentButton);
