@@ -113,76 +113,21 @@ if (modalCloseButton) {
 
 // 切换显示区域
 function showSection(sectionId) {
-    console.log('showSection called with sectionId:', sectionId);
-    // Always hide all tab-content sections first
-    document.querySelectorAll('.tab-content').forEach(tabContent => {
-        tabContent.style.display = 'none';
-    });
-    console.log('All tab-content hidden.');
-
-    // Always hide car detail container and appointment form container first
-    if (carDetailContainer) {
-        carDetailContainer.style.display = 'none';
-        console.log('carDetailContainer hidden.');
-    }
-    if (appointmentFormContainer) {
-        appointmentFormContainer.style.display = 'none';
-        console.log('appointmentFormContainer hidden.');
-    }
-
-    // Hide pagination controls by default
-    if (paginationControls) {
-        paginationControls.style.display = 'none';
-        console.log('paginationControls hidden.');
-    }
-
-    // Handle authentication sections
-    if (sectionId === 'register' || sectionId === 'login') {
-        authSection.style.display = 'block';
-        carSection.style.display = 'none';
-        console.log('Auth section displayed, car section hidden.');
-
-        registerForm.style.display = 'none';
-        loginForm.style.display = 'none';
-        showRegisterFormButton.classList.remove('active');
-        showLoginFormButton.classList.remove('active');
-
-        if (sectionId === 'register') {
-            registerForm.style.display = 'block';
-            showRegisterFormButton.classList.add('active');
-            console.log('Register form displayed.');
-        } else {
-            loginForm.style.display = 'block';
-            showLoginFormButton.classList.add('active');
-            console.log('Login form displayed.');
-        }
-    } else { // Handle car-related sections (tabs, car detail, or appointment form)
-        authSection.style.display = 'none';
-        carSection.style.display = 'block'; // Ensure the main car section is visible
-        console.log('Auth section hidden, car section displayed.');
-
-        // Note: carDetailContainer and appointmentFormContainer are explicitly hidden at the start of this function.
-        // We need to re-show them if they are the target or a parent of the target.
-
-        const targetElement = document.getElementById(sectionId);
-        if (targetElement) {
-            targetElement.style.display = 'block';
-            console.log(`Target element ${sectionId} displayed.`);
-
-            // Special handling for cars-tab to show pagination
-            if (sectionId === 'cars-tab' && paginationControls) {
-                paginationControls.style.display = 'flex';
-                console.log('Pagination controls displayed for cars-tab.');
-            }
-
-            // If the target is car-detail-container or appointment-form-container, ensure car-detail-container is visible
-            if (sectionId === 'car-detail-container' || sectionId === 'appointment-form-container') {
-                if (carDetailContainer) {
-                    carDetailContainer.style.display = 'block';
-                    console.log('carDetailContainer explicitly displayed.');
-                }
-            }
-        }
+    // 隐藏所有表单
+    if (registerForm) registerForm.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'none';
+    if (sectionId === 'register') {
+        if (authSection) authSection.style.display = 'block';
+        if (carSection) carSection.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'block';
+    } else if (sectionId === 'login') {
+        if (authSection) authSection.style.display = 'block';
+        if (carSection) carSection.style.display = 'none';
+        if (loginForm) loginForm.style.display = 'block';
+    } else {
+        if (authSection) authSection.style.display = 'none';
+        if (carSection) carSection.style.display = 'block';
+        // 其他tab内容显示逻辑...
     }
 }
 
@@ -197,10 +142,14 @@ function renderPaginationControls() {
 
 // 注册用户
 async function registerUser() {
-    const username = registerUsernameInput.value;
-    const password = registerPasswordInput.value;
-    const email = registerEmailInput.value;
-    const phone = registerPhoneInput.value;
+    const username = registerUsernameInput.value.trim();
+    const password = registerPasswordInput.value.trim();
+    const email = registerEmailInput.value.trim();
+    const phone = registerPhoneInput.value.trim();
+    if (!username || !password || !email || !phone) {
+        displayMessage('请完整填写所有注册信息！', 'error');
+        return;
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/user/register`, {
@@ -940,7 +889,17 @@ function logoutUser() {
 }
 
 // 事件监听器
-registerButton.addEventListener('click', registerUser);
+registerButton.addEventListener('click', async function() {
+    const username = registerUsernameInput.value.trim();
+    const password = registerPasswordInput.value.trim();
+    const email = registerEmailInput.value.trim();
+    const phone = registerPhoneInput.value.trim();
+    if (!username || !password || !email || !phone) {
+        displayMessage('请完整填写所有注册信息！', 'error');
+        return;
+    }
+    await registerUser();
+});
 loginButton.addEventListener('click', loginUser);
 logoutButton.addEventListener('click', logoutUser);
 
@@ -1176,5 +1135,14 @@ if (closeProfileModalButton) {
 profileModal.addEventListener('click', (event) => {
     if (event.target === profileModal) {
         closeProfileModal();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var toRegister = document.getElementById('to-register');
+    if (toRegister) {
+        toRegister.onclick = function() {
+            showSection('register');
+        }
     }
 }); 
