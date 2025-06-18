@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.test.importexcelsqlserver.ImportController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label text="Excel导入工具" style="-fx-font-size: 24px;"/>
+    
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="选择数据表："/>
+        <ComboBox fx:id="tableComboBox" prefWidth="200"/>
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="选择Excel文件："/>
+        <TextField fx:id="filePathField" prefWidth="300" editable="false"/>
+        <Button text="浏览" onAction="#handleBrowseFile"/>
+    </HBox>
+
+    <Button text="开始导入" onAction="#handleImport" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+
+    <TextArea fx:id="logArea" prefRowCount="10" prefColumnCount="50" editable="false" wrapText="true"/>
+</VBox> 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%green(%d{yyyy-MM-dd HH:mm:ss}) %boldMagenta(%contextName) [%thread] %highlight(%-5level) %cyan(%logger{100}) - %highlight(%msg) %n</pattern>
+        </encoder>
+    </appender>
+
+    <!--输出到文件-->
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/excel-import.log</file>
+        <!--日志文件最大的大小-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>excel-import-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <MaxFileSize>50MB</MaxFileSize>
+            <totalSizeCap>1GB</totalSizeCap>
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger{100} - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO" additivity="false">
+        <appender-ref ref="console" />
+        <appender-ref ref="file" />
+    </root>
+    <!--自定义配置-->
+    <logger name="com.ling" level="DEBUG" additivity="false">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+    </logger>
+</configuration> 
