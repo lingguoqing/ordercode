@@ -685,20 +685,50 @@ async function fetchCarDetails(carId) {
             });
             buttonGroup.appendChild(backButton);
 
-            const isFavorited = await checkIfCarIsFavorited(carId); 
+            const isFavorited = await checkIfCarIsFavorited(carId);
             console.log('Is car favorited?', isFavorited);
+            let favoriteId = null;
+            if (isFavorited) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/favorites/user/${currentUserId}/car/${carId}`, {
+                        method: 'GET',
+                        headers: { 'Authorization': `Bearer ${jwtToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success && data.data && data.data.favoriteId) {
+                        favoriteId = data.data.favoriteId;
+                    }
+                } catch (e) { console.error('获取favoriteId失败', e); }
+            }
             const favoriteButton = document.createElement('button');
             favoriteButton.textContent = isFavorited ? '取消收藏' : '收藏';
             favoriteButton.className = isFavorited ? 'cancel-favorite-button' : 'favorite-button';
-            favoriteButton.dataset.carId = carId; 
+            favoriteButton.dataset.carId = carId;
+            if (isFavorited && favoriteId) {
+                favoriteButton.dataset.favoriteId = favoriteId;
+            }
             favoriteButton.addEventListener('click', async (e) => {
                 if (isFavorited) {
-                    await removeFavorite(e); 
+                    // 直接根据userId和carId删除
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/favorites/user/${currentUserId}/car/${carId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${jwtToken}` }
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            displayMessage(data.message, 'success');
+                        } else {
+                            displayMessage(data.message, 'error');
+                        }
+                    } catch (error) {
+                        displayMessage('取消收藏请求失败，请检查网络或后端服务。', 'error');
+                    }
+                    fetchCarDetails(carId);
                 } else {
-                    await addFavorite(carId); 
+                    await addFavorite(carId);
+                    fetchCarDetails(carId);
                 }
-                fetchCarDetails(carId); 
-                console.log('Favorite button clicked.');
             });
             buttonGroup.appendChild(favoriteButton);
 
@@ -803,56 +833,6 @@ async function addFavorite(carId) {
     } catch (error) {
         console.error('添加收藏失败:', error);
         displayMessage('添加收藏请求失败，请检查网络或后端服务。', 'error');
-    }
-}
-
-// 移除收藏
-async function removeFavorite(event) {
-    const carId = event.target.dataset.carId; 
-    if (!carId) {
-        displayMessage('无法获取车辆ID。', 'error');
-        return;
-    }
-    if (!jwtToken || currentUserId === null) {
-        displayMessage('请先登录。', 'error');
-        showSection('login');
-        return;
-    }
-
-    try {
-        const checkResponse = await fetch(`${API_BASE_URL}/favorites/user/${currentUserId}/car/${carId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${jwtToken}`
-            }
-        });
-        const checkData = await checkResponse.json();
-
-        if (checkData.success && checkData.data) {
-            const favoriteId = checkData.data.favoriteId; 
-
-            if (favoriteId) {
-                const response = await fetch(`${API_BASE_URL}/favorites/${favoriteId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${jwtToken}`
-                    }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    displayMessage(data.message, 'success');
-                } else {
-                    displayMessage(data.message, 'error');
-                }
-            } else {
-                displayMessage('未找到收藏记录的ID。', 'error');
-            }
-        } else {
-            displayMessage('未找到收藏记录。', 'error');
-        }
-    } catch (error) {
-        console.error('移除收藏失败:', error);
-        displayMessage('移除收藏请求失败，请检查网络或后端服务。', 'error');
     }
 }
 

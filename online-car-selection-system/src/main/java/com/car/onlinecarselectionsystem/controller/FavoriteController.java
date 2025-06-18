@@ -70,4 +70,16 @@ public class FavoriteController {
         boolean isFavorited = favoriteService.isCarAlreadyFavorited(userId, carId);
         return ResponseEntity.ok(ApiResponse.success(isFavorited));
     }
+
+    @DeleteMapping("/user/{userId}/car/{carId}")
+    public ResponseEntity<ApiResponse<String>> deleteByUserIdAndCarId(@PathVariable Integer userId, @PathVariable Integer carId) {
+        QueryWrapper<Favorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId).eq("car_id", carId);
+        boolean removed = favoriteService.remove(queryWrapper);
+        if (removed) {
+            return ResponseEntity.ok(ApiResponse.success("取消收藏成功"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到收藏记录"));
+        }
+    }
 } 
