@@ -294,6 +294,42 @@
             font-size: 32px;
             font-weight: 700;
         }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .header-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        .profile-info {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .profile-info strong {
+            color: #555;
+            margin-right: 10px;
+        }
         
         /* 车辆列表/品牌/车型/收藏/预约列表通用样式 */
         .car-list,
@@ -448,13 +484,23 @@
             font-weight: 600;
             color: #555;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-section">
             <h1>在线选车系统</h1>
-            <button id="logout-button">注销</button>
+            <div class="header-buttons">
+                <button id="view-profile-button">查看个人信息</button>
+                <button id="logout-button">注销</button>
+            </div>
         </div>
 
         <div id="auth-section">
@@ -601,6 +647,19 @@
             <div class="button-group">
                 <button id="submit-appointment-button">提交预约</button>
                 <button id="cancel-appointment-form-button" class="cancel-button">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人信息弹框 -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-button" id="close-profile-modal">&times;</button>
+            <h3>个人信息</h3>
+            <div class="profile-info">
+                <p><strong>用户名：</strong><span id="profile-username"></span></p>
+                <p><strong>邮箱：</strong><span id="profile-email"></span></p>
+                <p><strong>电话：</strong><span id="profile-phone"></span></p>
             </div>
         </div>
     </div>

@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import com.car.onlinecarselectionsystem.util.JwtUtil;
 
 @RestController
 @RequestMapping("/api/user")
@@ -19,6 +23,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@RequestBody UserRegisterRequest registerRequest) {
@@ -43,5 +50,27 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Invalid username or password!"));
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<User>> getProfile(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("未提供有效的Token！"));
+        }
+        String token = authHeader.substring(7);
+        Integer userId;
+        try {
+            userId = jwtUtil.extractClaim(token, claims -> (Integer) claims.get("userId"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Token无效或已过期！"));
+        }
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("用户不存在！"));
+        }
+        // 不返回密码等敏感信息
+        user.setPassword(null);
+        return ResponseEntity.ok(ApiResponse.success(user));
     }
 } 

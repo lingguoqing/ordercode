@@ -12,6 +12,12 @@ const loginUsernameInput = document.getElementById('login-username');
 const loginPasswordInput = document.getElementById('login-password');
 const loginButton = document.getElementById('login-button');
 const logoutButton = document.getElementById('logout-button');
+const viewProfileButton = document.getElementById('view-profile-button');
+const profileModal = document.getElementById('profile-modal');
+const closeProfileModalButton = document.getElementById('close-profile-modal');
+const profileUsername = document.getElementById('profile-username');
+const profileEmail = document.getElementById('profile-email');
+const profilePhone = document.getElementById('profile-phone');
 
 const carsContainer = document.getElementById('cars-container');
 const brandsContainer = document.getElementById('brands-container');
@@ -1117,4 +1123,56 @@ document.addEventListener('DOMContentLoaded', () => {
         showSection('login'); 
     }
     updateUIForAuthStatus();
+});
+
+// 获取用户信息
+async function fetchUserProfile() {
+    if (!jwtToken) {
+        displayMessage('请先登录以查看个人信息。', 'error');
+        showSection('login');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/user/profile`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            const user = data.data;
+            profileUsername.textContent = user.username;
+            profileEmail.textContent = user.email;
+            profilePhone.textContent = user.phone;
+            profileModal.classList.add('visible');
+        } else {
+            displayMessage(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('获取用户信息失败:', error);
+        displayMessage('获取用户信息请求失败，请检查网络或后端服务。', 'error');
+    }
+}
+
+// 关闭个人信息模态框
+function closeProfileModal() {
+    profileModal.classList.remove('visible');
+}
+
+// 事件监听器
+if (viewProfileButton) {
+    viewProfileButton.addEventListener('click', fetchUserProfile);
+}
+
+if (closeProfileModalButton) {
+    closeProfileModalButton.addEventListener('click', closeProfileModal);
+}
+
+// 点击模态框外部关闭
+profileModal.addEventListener('click', (event) => {
+    if (event.target === profileModal) {
+        closeProfileModal();
+    }
 }); 

@@ -51,4 +51,9 @@ public class UserServiceImpl implements UserService {
         }
         return null; // 登录失败
     }
+
+    @Override
+    public User getUserById(Integer userId) {
+        return userMapper.selectById(userId);
+    }
 } 

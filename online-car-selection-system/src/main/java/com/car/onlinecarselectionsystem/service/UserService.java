@@ -17,4 +17,9 @@ public interface UserService {
      * @return 登录成功返回JWT Token，否则返回null
      */
     String login(UserLoginRequest loginRequest);
+
+    /**
+     * 通过用户ID获取用户信息
+     */
+    User getUserById(Integer userId);
 } 
