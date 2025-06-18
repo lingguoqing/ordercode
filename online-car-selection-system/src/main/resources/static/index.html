@@ -491,6 +491,109 @@
             gap: 20px;
             margin-bottom: 20px;
         }
+
+        /* 登录注册卡片美化样式 */
+        #auth-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .auth-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            padding: 48px 40px 32px 40px;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tab-group {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+        .tab-button {
+            padding: 12px 22px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e9ecef;
+            background: #f8f9fa;
+            color: #1677ff;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .tab-button.active {
+            background: #fff;
+            color: #222;
+            border-bottom: 2px solid #fff;
+            font-weight: bold;
+        }
+        .tab-button:not(.active):hover {
+            background: #e2e6ea;
+        }
+        .tab-content {
+            width: 100%;
+            background: #fff;
+            border-radius: 0 0 12px 12px;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group input[type="email"],
+        .form-group input[type="date"],
+        .form-group input[type="time"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #1677ff;
+            box-shadow: 0 0 0 2px rgba(22,119,255,0.10);
+            outline: none;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .button-group button {
+            width: 100%;
+            padding: 12px 0;
+            background: #1677ff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .button-group button:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -504,46 +607,46 @@
         </div>
 
         <div id="auth-section">
-            <div class="tab-group">
-                <button id="show-register-form-button" class="tab-button">注册</button>
-                <button id="show-login-form-button" class="tab-button active">登录</button>
-            </div>
-
-            <div id="register-form" class="tab-content">
-                <h2>用户注册</h2>
-                <div class="form-group">
-                    <label for="register-username">用户名:</label>
-                    <input type="text" id="register-username" placeholder="请输入用户名">
+            <div class="auth-card">
+                <div class="tab-group">
+                    <button id="show-register-form-button" class="tab-button">注册</button>
+                    <button id="show-login-form-button" class="tab-button active">登录</button>
                 </div>
-                <div class="form-group">
-                    <label for="register-password">密码:</label>
-                    <input type="password" id="register-password" placeholder="请输入密码">
+                <div id="register-form" class="tab-content">
+                    <h2>用户注册</h2>
+                    <div class="form-group">
+                        <label for="register-username">用户名:</label>
+                        <input type="text" id="register-username" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">密码:</label>
+                        <input type="password" id="register-password" placeholder="请输入密码">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">邮箱:</label>
+                        <input type="email" id="register-email" placeholder="请输入邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-phone">电话:</label>
+                        <input type="text" id="register-phone" placeholder="请输入电话">
+                    </div>
+                    <div class="button-group">
+                        <button id="register-button">注册</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="register-email">邮箱:</label>
-                    <input type="email" id="register-email" placeholder="请输入邮箱">
-                </div>
-                <div class="form-group">
-                    <label for="register-phone">电话:</label>
-                    <input type="text" id="register-phone" placeholder="请输入电话">
-                </div>
-                <div class="button-group">
-                    <button id="register-button">注册</button>
-                </div>
-            </div>
-
-            <div id="login-form" class="tab-content" style="display: block;">
-                <h2>用户登录</h2>
-                <div class="form-group">
-                    <label for="login-username">用户名:</label>
-                    <input type="text" id="login-username" placeholder="请输入用户名">
-                </div>
-                <div class="form-group">
-                    <label for="login-password">密码:</label>
-                    <input type="password" id="login-password" placeholder="请输入密码">
-                </div>
-                <div class="button-group">
-                    <button id="login-button">登录</button>
+                <div id="login-form" class="tab-content" style="display: block;">
+                    <h2>用户登录</h2>
+                    <div class="form-group">
+                        <label for="login-username">用户名:</label>
+                        <input type="text" id="login-username" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密码:</label>
+                        <input type="password" id="login-password" placeholder="请输入密码">
+                    </div>
+                    <div class="button-group">
+                        <button id="login-button">登录</button>
+                    </div>
                 </div>
             </div>
         </div>
