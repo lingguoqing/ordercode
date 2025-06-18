@@ -26,10 +26,10 @@ public class TestDriveAppointmentController {
                 appointment.setStatus("待确认"); // 设置默认状态
             }
             testDriveAppointmentService.save(appointment);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Appointment created successfully!", appointment));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("预约创建成功", appointment));
         } catch (Exception e) {
             // 捕获所有异常，并返回统一的错误响应
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Failed to create appointment: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("创建预约失败: " + e.getMessage()));
         }
     }
 
@@ -45,7 +45,7 @@ public class TestDriveAppointmentController {
         if (appointment != null) {
             return ResponseEntity.ok(ApiResponse.success(appointment));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Appointment not found!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("该数据不存在"));
         }
     }
 
@@ -53,18 +53,18 @@ public class TestDriveAppointmentController {
     public ResponseEntity<ApiResponse<TestDriveAppointment>> updateAppointment(@PathVariable Integer id, @RequestBody TestDriveAppointment appointment) {
         appointment.setAppointmentId(id);
         if (testDriveAppointmentService.updateById(appointment)) {
-            return ResponseEntity.ok(ApiResponse.success("Appointment updated successfully!", appointment));
+            return ResponseEntity.ok(ApiResponse.success("更新成功", appointment));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Appointment not found for update!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("更新失败"));
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteAppointment(@PathVariable Integer id) {
         if (testDriveAppointmentService.removeById(id)) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Appointment deleted successfully!"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("删除成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Appointment not found for deletion!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("删除失败"));
         }
     }
 

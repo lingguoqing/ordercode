@@ -23,13 +23,13 @@ public class FavoriteController {
     public ResponseEntity<ApiResponse<Favorite>> createFavorite(@RequestBody Favorite favorite) {
         // 检查车辆是否已经被当前用户收藏
         if (favoriteService.isCarAlreadyFavorited(favorite.getUserId(), favorite.getCarId())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Car already favorited by this user!"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("该车辆已被当前用户收藏"));
         }
         // 设置收藏时间为当前时间
         favorite.setFavoriteTime(LocalDateTime.now());
 
         favoriteService.save(favorite);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Favorite created successfully!", favorite));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("收藏成功", favorite));
     }
 
     @GetMapping
@@ -44,7 +44,7 @@ public class FavoriteController {
         if (favorite != null) {
             return ResponseEntity.ok(ApiResponse.success(favorite));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Favorite not found!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到该收藏"));
         }
     }
 
@@ -53,7 +53,7 @@ public class FavoriteController {
         if (favoriteService.removeById(id)) {
             return ResponseEntity.ok(ApiResponse.success("取消收藏成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Favorite not found for deletion!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到可删除的收藏"));
         }
     }
 

@@ -20,7 +20,7 @@ public class CarModelController {
     @PostMapping
     public ResponseEntity<ApiResponse<CarModel>> createCarModel(@RequestBody CarModel carModel) {
         carModelService.save(carModel);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Car model created successfully!", carModel));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("车型创建成功", carModel));
     }
 
     @GetMapping
@@ -35,7 +35,7 @@ public class CarModelController {
         if (carModel != null) {
             return ResponseEntity.ok(ApiResponse.success(carModel));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car model not found!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到该车型"));
         }
     }
 
@@ -43,18 +43,18 @@ public class CarModelController {
     public ResponseEntity<ApiResponse<CarModel>> updateCarModel(@PathVariable Integer id, @RequestBody CarModel carModel) {
         carModel.setModelId(id);
         if (carModelService.updateById(carModel)) {
-            return ResponseEntity.ok(ApiResponse.success("Car model updated successfully!", carModel));
+            return ResponseEntity.ok(ApiResponse.success("更新成功", carModel));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car model not found for update!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("更新失败"));
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteCarModel(@PathVariable Integer id) {
         if (carModelService.removeById(id)) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Car model deleted successfully!"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("删除成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car model not found for deletion!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("删除失败"));
         }
     }
 } 

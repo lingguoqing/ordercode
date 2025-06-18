@@ -20,7 +20,7 @@ public class BrandController {
     @PostMapping
     public ResponseEntity<ApiResponse<Brand>> createBrand(@RequestBody Brand brand) {
         brandService.save(brand);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Brand created successfully!", brand));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("品牌创建成功", brand));
     }
 
     @GetMapping
@@ -35,7 +35,7 @@ public class BrandController {
         if (brand != null) {
             return ResponseEntity.ok(ApiResponse.success(brand));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Brand not found!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到该品牌"));
         }
     }
 
@@ -43,18 +43,18 @@ public class BrandController {
     public ResponseEntity<ApiResponse<Brand>> updateBrand(@PathVariable Integer id, @RequestBody Brand brand) {
         brand.setBrandId(id);
         if (brandService.updateById(brand)) {
-            return ResponseEntity.ok(ApiResponse.success("Brand updated successfully!", brand));
+            return ResponseEntity.ok(ApiResponse.success("品牌更新成功", brand));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Brand not found for update!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到可更新的品牌"));
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteBrand(@PathVariable Integer id) {
         if (brandService.removeById(id)) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Brand deleted successfully!"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("删除成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Brand not found for deletion!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("删除失败"));
         }
     }
 } 

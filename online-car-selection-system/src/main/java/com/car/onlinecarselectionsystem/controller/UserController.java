@@ -36,9 +36,9 @@ public class UserController {
         user.setPhone(registerRequest.getPhone());
 
         if (userService.register(user)) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered successfully!"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("注册成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Username already exists!"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("用户名已存在"));
         }
     }
 
@@ -46,9 +46,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> login(@RequestBody UserLoginRequest loginRequest) {
         String jwt = userService.login(loginRequest);
         if (jwt != null) {
-            return ResponseEntity.ok(ApiResponse.success("Login successful!", jwt));
+            return ResponseEntity.ok(ApiResponse.success("登录成功", jwt));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Invalid username or password!"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("用户名或密码错误"));
         }
     }
 

@@ -29,7 +29,7 @@ public class CarController {
     @PostMapping
     public ResponseEntity<ApiResponse<Car>> createCar(@RequestBody Car car) {
         carService.save(car);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Car created successfully!", car));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("车辆创建成功", car));
     }
 
     @GetMapping
@@ -46,7 +46,7 @@ public class CarController {
         if (car != null) {
             return ResponseEntity.ok(ApiResponse.success(car));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car not found!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到该车辆"));
         }
     }
 
@@ -90,18 +90,18 @@ public class CarController {
     public ResponseEntity<ApiResponse<Car>> updateCar(@PathVariable Integer id, @RequestBody Car car) {
         car.setCarId(id);
         if (carService.updateById(car)) {
-            return ResponseEntity.ok(ApiResponse.success("Car updated successfully!", car));
+            return ResponseEntity.ok(ApiResponse.success("车辆更新成功", car));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car not found for update!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到可更新的车辆"));
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteCar(@PathVariable Integer id) {
         if (carService.removeById(id)) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("Car deleted successfully!"));
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success("车辆删除成功"));
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Car not found for deletion!"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("未找到可删除的车辆"));
         }
     }
 } 

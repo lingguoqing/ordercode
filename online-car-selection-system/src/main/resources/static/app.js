@@ -1158,4 +1158,12 @@ document.addEventListener('DOMContentLoaded', function() {
             showSection('register');
         }
     }
-}); 
+});
+
+// 注册页面返回登录按钮事件
+const backToLoginButton = document.getElementById('back-to-login-button');
+if (backToLoginButton) {
+    backToLoginButton.addEventListener('click', function() {
+        showSection('login');
+    });
+} 
