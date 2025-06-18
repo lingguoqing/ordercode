@@ -57,9 +57,9 @@ public class ImportController {
                     selectedTable
             );
             logArea.appendText("已选择表: " + selectedTable + "\n");
-            logger.info("已选择表: " + selectedTable + "\n");
+            logger.info("已选择表: " + selectedTable);
             logArea.appendText("表结构: " + String.join(", ", tableColumns) + "\n");
-            logger.info("表结构: " + String.join(", ", tableColumns) + "\n");
+            logger.info("表结构: " + String.join(", ", tableColumns));
         }
     }
 
@@ -118,7 +118,7 @@ public class ImportController {
 
         } catch (Exception e) {
             logArea.appendText("错误: " + e.getMessage() + "\n");
-            logger.error("错误: " + e.getMessage() + "\n");
+            logger.error("错误: " + e.getMessage());
             showAlert("导入失败：" + e.getMessage());
         }
     }
@@ -129,7 +129,7 @@ public class ImportController {
             if (!excelHeaders.contains(dbColumn)) {
                 String message = "Excel文件缺少必需的列: " + dbColumn;
                 logArea.appendText(message + "\n");
-                logger.info(message + "\n");
+                logger.info(message);
                 showAlert(message);
                 return false;
             }
@@ -171,19 +171,19 @@ public class ImportController {
 
                     if (successCount[0] % 100 == 0) {
                         logArea.appendText("已成功导入 " + successCount[0] + " 条数据\n");
-                        logger.info("已成功导入 " + successCount[0] + " 条数据\n");
+                        logger.info("已成功导入 " + successCount[0] + " 条数据");
                     }
                 } catch (Exception e) {
                     failCount[0]++;
                     logArea.appendText("导入失败: " + e.getMessage() + "\n");
-                    logger.error("导入失败: " + e.getMessage() + "\n");
+                    logger.error("导入失败: " + e.getMessage() + "");
                 }
             }
 
             @Override
             public void doAfterAllAnalysed(AnalysisContext context) {
                 logArea.appendText("导入完成！成功: " + successCount[0] + " 条，失败: " + failCount[0] + " 条\n");
-                logger.info("导入完成！成功: " + successCount[0] + " 条，失败: " + failCount[0] + " 条\n");
+                logger.info("导入完成！成功: " + successCount[0] + " 条，失败: " + failCount[0] + " 条");
             }
         }).sheet().doRead();
     }
