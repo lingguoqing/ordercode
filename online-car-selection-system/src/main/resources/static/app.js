@@ -38,14 +38,8 @@ const appointmentContactInput = document.getElementById('appointment-contact');
 const submitAppointmentButton = document.getElementById('submit-appointment-button');
 const cancelAppointmentFormButton = document.getElementById('cancel-appointment-form-button');
 const paginationControls = document.getElementById('pagination-controls');
-const prevPageButton = document.getElementById('prev-page');
-const nextPageButton = document.getElementById('next-page');
 const pageInfoSpan = document.getElementById('page-info');
-const brandPrevPageButton = document.getElementById('brand-prev-page');
-const brandNextPageButton = document.getElementById('brand-next-page');
 const brandPageInfoSpan = document.getElementById('brand-page-info');
-const modelPrevPageButton = document.getElementById('model-prev-page');
-const modelNextPageButton = document.getElementById('model-next-page');
 const modelPageInfoSpan = document.getElementById('model-page-info');
 
 // 新增：预约试驾模态框相关DOM元素
@@ -66,6 +60,8 @@ const messageModal = document.getElementById('message-modal');
 const modalMessageText = document.getElementById('modal-message-text');
 const modalCloseButton = messageModal.querySelector('.modal-close-button');
 
+const loginHeaderButton = document.getElementById('login-header-button');
+
 // 解析JWT Token获取Payload
 function parseJwt(token) {
     try {
@@ -83,12 +79,22 @@ function parseJwt(token) {
 
 // 更新UI以反映认证状态
 function updateUIForAuthStatus() {
+    // 判断当前是否为登录或注册页面
+    const isAuthPage = (authSection && authSection.style.display !== 'none');
     if (jwtToken) {
-        logoutButton.style.display = 'inline-block'; // 登录后显示注销按钮
-        if (viewProfileButton) viewProfileButton.style.display = 'inline-block'; // 登录后显示个人信息按钮
+        logoutButton.style.display = 'inline-block';
+        if (viewProfileButton) viewProfileButton.style.display = 'inline-block';
+        if (loginHeaderButton) loginHeaderButton.style.display = 'none';
     } else {
-        logoutButton.style.display = 'none'; // 未登录时隐藏注销按钮
-        if (viewProfileButton) viewProfileButton.style.display = 'none'; // 未登录时隐藏个人信息按钮
+        logoutButton.style.display = 'none';
+        if (viewProfileButton) viewProfileButton.style.display = 'none';
+        if (loginHeaderButton) {
+            if (isAuthPage) {
+                loginHeaderButton.style.display = 'none';
+            } else {
+                loginHeaderButton.style.display = 'inline-block';
+            }
+        }
     }
 }
 
@@ -142,15 +148,7 @@ function showSection(sectionId) {
             document.getElementById('car-detail-container').style.display = 'none';
         }
     }
-}
-
-// 渲染分页控件
-function renderPaginationControls() {
-    if (!paginationControls) return; // 确保分页控件存在
-
-    pageInfoSpan.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-    prevPageButton.disabled = (currentPage <= 1);
-    nextPageButton.disabled = (currentPage >= totalPages);
+    updateUIForAuthStatus();
 }
 
 // 注册用户
@@ -265,11 +263,9 @@ async function fetchCars(page = currentPage, size = pageSize) {
                     carsContainer.appendChild(carItem);
                 });
                 totalPages = data.data.pages;
-                renderPaginationControls();
             } else {
                 carsContainer.innerHTML = '<p class="no-results">暂无车辆信息。</p>';
                 totalPages = 0;
-                renderPaginationControls();
             }
         } else {
             displayMessage(data.message, 'error');
@@ -370,12 +366,8 @@ async function fetchCarsByBrand(page = currentPage, size = pageSize, brandId = c
                     `;
                     carsContainer.appendChild(carItem);
                 });
-                totalPages = data.data.pages;
-                renderPaginationControls();
             } else {
                 carsContainer.innerHTML = '<p class="no-results">暂无该品牌车辆信息。</p>';
-                totalPages = 0;
-                renderPaginationControls();
             }
         } else {
             displayMessage(data.message, 'error');
@@ -475,12 +467,8 @@ async function fetchCarsByModel(page = currentPage, size = pageSize, modelId = c
                     `;
                     carsContainer.appendChild(carItem);
                 });
-                totalPages = data.data.pages;
-                renderPaginationControls();
             } else {
                 carsContainer.innerHTML = '<p class="no-results">暂无该车型车辆信息。</p>';
-                totalPages = 0;
-                renderPaginationControls();
             }
         } else {
             displayMessage(data.message, 'error');
@@ -955,9 +943,6 @@ carsContainer.addEventListener('click', (event) => {
         console.log('Detail button clicked. Car ID:', carId);
         if (carId) {
             fetchCarDetails(carId);
-            if (paginationControls) {
-                paginationControls.style.display = 'none';
-            }
         }
     }
 });
@@ -1039,37 +1024,6 @@ if (cancelAppointmentFormButton) {
 if (closeAppointmentModalButton) {
     closeAppointmentModalButton.addEventListener('click', () => {
         appointmentModal.classList.remove('visible'); // 关闭弹框
-    });
-}
-
-// 分页按钮事件监听器
-if (prevPageButton) {
-    prevPageButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            if (currentFilter === 'all') {
-                fetchCars(currentPage, pageSize);
-            } else if (currentFilter === 'brand' && currentFilterId) {
-                fetchCarsByBrand(currentPage, pageSize, currentFilterId);
-            } else if (currentFilter === 'model' && currentFilterId) {
-                fetchCarsByModel(currentPage, pageSize, currentFilterId);
-            }
-        }
-    });
-}
-
-if (nextPageButton) {
-    nextPageButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            if (currentFilter === 'all') {
-                fetchCars(currentPage, pageSize);
-            } else if (currentFilter === 'brand' && currentFilterId) {
-                fetchCarsByBrand(currentPage, pageSize, currentFilterId);
-            } else if (currentFilter === 'model' && currentFilterId) {
-                fetchCarsByModel(currentPage, pageSize, currentFilterId);
-            }
-        }
     });
 }
 
@@ -1158,6 +1112,12 @@ document.addEventListener('DOMContentLoaded', function() {
 const backToLoginButton = document.getElementById('back-to-login-button');
 if (backToLoginButton) {
     backToLoginButton.addEventListener('click', function() {
+        showSection('login');
+    });
+}
+
+if (loginHeaderButton) {
+    loginHeaderButton.addEventListener('click', function() {
         showSection('login');
     });
 } 
