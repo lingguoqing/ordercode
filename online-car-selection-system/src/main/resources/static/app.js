@@ -232,32 +232,28 @@ async function loginUser() {
 
 // 获取车辆列表 (带分页)
 async function fetchCars(page = currentPage, size = pageSize) {
-    if (!jwtToken) {
-        displayMessage('请先登录以查看车辆信息。', 'error');
-        showSection('login');
-        return;
-    }
-
     currentPage = page; // 更新当前页码
     currentFilter = 'all'; // 重置过滤类型
     currentFilterId = null; // 重置过滤ID
 
     try {
+        const headers = {};
+        if (jwtToken) {
+            headers['Authorization'] = `Bearer ${jwtToken}`;
+        }
         const response = await fetch(`${API_BASE_URL}/cars?page=${page}&size=${size}`, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${jwtToken}` // 发送JWT Token
-            }
+            headers: headers
         });
         const data = await response.json();
         if (data.success) {
-            carsContainer.innerHTML = ''; // 清空现有列表
+            carsContainer.innerHTML = '';
             if (data.data && data.data.records && data.data.records.length > 0) {
                 data.data.records.forEach(car => {
                     const carItem = document.createElement('div');
-                    carItem.className = 'car-item'; // 使用新的car-item类
+                    carItem.className = 'car-item';
                     carItem.innerHTML = `
-                        ${car.imageUrl ? `<img src="${car.imageUrl}" alt="${car.brandName} ${car.modelName}">` : ''} <!-- 车辆图片 -->
+                        ${car.imageUrl ? `<img src="${car.imageUrl}" alt="${car.brandName} ${car.modelName}">` : ''}
                         <h3>${car.brandName} ${car.modelName}</h3>
                         <p>生产年份: ${car.productionYear}</p>
                         <p>价格: ¥${car.price ? car.price.toLocaleString() : 'N/A'}</p>
@@ -268,11 +264,11 @@ async function fetchCars(page = currentPage, size = pageSize) {
                     `;
                     carsContainer.appendChild(carItem);
                 });
-                totalPages = data.data.pages; // 更新总页数
-                renderPaginationControls(); // 渲染分页控件
+                totalPages = data.data.pages;
+                renderPaginationControls();
             } else {
                 carsContainer.innerHTML = '<p class="no-results">暂无车辆信息。</p>';
-                totalPages = 0; // 没有数据，总页数为0
+                totalPages = 0;
                 renderPaginationControls();
             }
         } else {
@@ -918,31 +914,47 @@ logoutButton.addEventListener('click', logoutUser);
 
 // Tab 切换逻辑
 document.querySelectorAll('.tab-button').forEach(button => {
-    console.log('Found tab button:', button.id, button.dataset.tab);
     button.addEventListener('click', function() {
-        console.log('Tab button clicked:', this.id, this.dataset.tab);
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
         const tab = this.dataset.tab;
-        console.log('Attempting to show section:', tab);
-        // 根据tab的类型调用相应的fetch函数
         if (tab === 'cars-tab') {
-            currentFilter = 'all'; // 重置为获取所有车辆
-            currentPage = 1; // 重置页码
+            currentFilter = 'all';
+            currentPage = 1;
             fetchCars(currentPage, pageSize);
-            showSection(tab); // 修正：传递完整的tab ID
+            showSection(tab);
         } else if (tab === 'brands-tab') {
+            if (!jwtToken) {
+                displayMessage('请先登录后查看品牌信息。', 'error');
+                showSection('login');
+                return;
+            }
             fetchBrands();
-            showSection(tab); // 修正：传递完整的tab ID
+            showSection(tab);
         } else if (tab === 'models-tab') {
+            if (!jwtToken) {
+                displayMessage('请先登录后查看车型信息。', 'error');
+                showSection('login');
+                return;
+            }
             fetchCarModels();
-            showSection(tab); // 修正：传递完整的tab ID
+            showSection(tab);
         } else if (tab === 'favorites-tab') {
+            if (!jwtToken) {
+                displayMessage('请先登录后查看收藏信息。', 'error');
+                showSection('login');
+                return;
+            }
             fetchFavorites();
-            showSection(tab); // 修正：传递完整的tab ID
+            showSection(tab);
         } else if (tab === 'appointments-tab') {
+            if (!jwtToken) {
+                displayMessage('请先登录后查看预约信息。', 'error');
+                showSection('login');
+                return;
+            }
             fetchAppointments();
-            showSection(tab); // 修正：传递完整的tab ID
+            showSection(tab);
         }
     });
 });
@@ -1087,14 +1099,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const decodedToken = parseJwt(jwtToken);
         if (decodedToken && decodedToken.userId) {
             currentUserId = decodedToken.userId;
-            showSection('cars-tab'); // 修正：传递完整的tab ID
-            fetchCars(currentPage, pageSize); 
+            showSection('cars-tab');
+            fetchCars(currentPage, pageSize);
         } else {
             console.warn("Invalid JWT or missing userId, logging out.");
             logoutUser();
         }
     } else {
-        showSection('login'); 
+        // 未登录时也显示车辆列表
+        showSection('cars-tab');
+        fetchCars(currentPage, pageSize);
     }
     updateUIForAuthStatus();
 });
