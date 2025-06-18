@@ -127,7 +127,20 @@ function showSection(sectionId) {
     } else {
         if (authSection) authSection.style.display = 'none';
         if (carSection) carSection.style.display = 'block';
-        // 其他tab内容显示逻辑...
+        // 新增：tab内容切换
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        const activeTab = document.getElementById(sectionId);
+        if (activeTab) {
+            activeTab.style.display = 'block';
+        }
+        // 车辆详情特殊处理
+        if (sectionId === 'car-detail-container') {
+            document.getElementById('car-detail-container').style.display = 'flex';
+        } else if (document.getElementById('car-detail-container')) {
+            document.getElementById('car-detail-container').style.display = 'none';
+        }
     }
 }
 
