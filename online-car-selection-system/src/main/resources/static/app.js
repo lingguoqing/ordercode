@@ -85,8 +85,10 @@ function parseJwt(token) {
 function updateUIForAuthStatus() {
     if (jwtToken) {
         logoutButton.style.display = 'inline-block'; // 登录后显示注销按钮
+        if (viewProfileButton) viewProfileButton.style.display = 'inline-block'; // 登录后显示个人信息按钮
     } else {
         logoutButton.style.display = 'none'; // 未登录时隐藏注销按钮
+        if (viewProfileButton) viewProfileButton.style.display = 'none'; // 未登录时隐藏个人信息按钮
     }
 }
 
