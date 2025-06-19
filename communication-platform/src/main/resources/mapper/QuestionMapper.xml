@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.communication.platform.communicationplatform.dao.QuestionDao">
+    <resultMap id="questionWithUser" type="com.communication.platform.communicationplatform.entity.Question">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="createTime" column="create_time"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="username" column="username"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.communication.platform.communicationplatform.entity.Question" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO question (user_id, title, description, create_time, view_count)
+        VALUES (#{userId}, #{title}, #{description}, #{createTime}, #{viewCount})
+    </insert>
+    
+    <select id="findAll" resultMap="questionWithUser">
+        SELECT q.*, u.username 
+        FROM question q 
+        LEFT JOIN user u ON q.user_id = u.id 
+        ORDER BY q.create_time DESC
+    </select>
+    
+    <select id="findById" resultMap="questionWithUser">
+        SELECT q.*, u.username 
+        FROM question q 
+        LEFT JOIN user u ON q.user_id = u.id 
+        WHERE q.id = #{id}
+    </select>
+    
+    <update id="updateViewCount">
+        UPDATE question 
+        SET view_count = #{viewCount}
+        WHERE id = #{id}
+    </update>
+    
+    <select id="findByUserId" resultMap="questionWithUser">
+        SELECT q.*, u.username 
+        FROM question q 
+        LEFT JOIN user u ON q.user_id = u.id 
+        WHERE q.user_id = #{userId}
+        ORDER BY q.create_time DESC
+    </select>
+</mapper> 

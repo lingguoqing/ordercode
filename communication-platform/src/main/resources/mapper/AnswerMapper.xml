@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.communication.platform.communicationplatform.dao.AnswerDao">
+    <resultMap id="answerWithUser" type="com.communication.platform.communicationplatform.entity.Answer">
+        <id property="id" column="id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="username" column="username"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.communication.platform.communicationplatform.entity.Answer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO answer (question_id, user_id, content, create_time)
+        VALUES (#{questionId}, #{userId}, #{content}, #{createTime})
+    </insert>
+    
+    <select id="findByQuestionId" resultMap="answerWithUser">
+        SELECT a.*, u.username 
+        FROM answer a 
+        LEFT JOIN user u ON a.user_id = u.id 
+        WHERE a.question_id = #{questionId}
+        ORDER BY a.create_time ASC
+    </select>
+    
+    <select id="findByUserId" resultMap="answerWithUser">
+        SELECT a.*, u.username 
+        FROM answer a 
+        LEFT JOIN user u ON a.user_id = u.id 
+        WHERE a.user_id = #{userId}
+        ORDER BY a.create_time DESC
+    </select>
+    
+    <select id="findById" resultMap="answerWithUser">
+        SELECT a.*, u.username 
+        FROM answer a 
+        LEFT JOIN user u ON a.user_id = u.id 
+        WHERE a.id = #{id}
+    </select>
+</mapper> 
