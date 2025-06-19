@@ -23,7 +23,10 @@
         <Button text="浏览" onAction="#handleBrowseFile"/>
     </HBox>
 
-    <Button fx:id="importButton" text="开始导入" onAction="#handleImport" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button fx:id="importButton" text="开始导入" onAction="#handleImport" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <Button fx:id="exportTemplateButton" text="导出模板" onAction="#handleExportTemplate" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+    </HBox>
 
     <TextArea fx:id="logArea" prefRowCount="10" prefColumnCount="50" editable="false" wrapText="true"/>
 </VBox> 

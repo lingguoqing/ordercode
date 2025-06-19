@@ -33,9 +33,14 @@ public class ImportController {
     @FXML
     private Button importButton;
 
+    @FXML
+    private Button exportTemplateButton;
+
     private JdbcTemplate jdbcTemplate;
     private String selectedTable;
     private List<String> tableColumns;
+    // 字段注释到字段名的映射（中文->英文），顺序与数据库一致
+    private LinkedHashMap<String, String> commentToColumnMap = new LinkedHashMap<>();
 
     @FXML
     public void initialize() {
@@ -55,16 +60,24 @@ public class ImportController {
     private void handleTableSelection() {
         selectedTable = tableComboBox.getValue();
         if (selectedTable != null) {
-            // 获取选中表的所有列名
-            tableColumns = jdbcTemplate.queryForList(
-                    "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ?",
-                    String.class,
-                    selectedTable
+            // 获取选中表的所有非id字段的列名和注释
+            commentToColumnMap.clear();
+            List<Map<String, Object>> columns = jdbcTemplate.queryForList(
+                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id' ORDER BY ordinal_position",
+                selectedTable
             );
+            List<String> comments = new ArrayList<>();
+            for (Map<String, Object> col : columns) {
+                String name = (String) col.get("column_name");
+                String comment = (String) col.get("column_comment");
+                String key = (comment == null || comment.isEmpty()) ? name : comment;
+                commentToColumnMap.put(key, name);
+                comments.add(key);
+            }
             logArea.appendText("已选择表: " + selectedTable + "\n");
             logger.info("已选择表: " + selectedTable);
-            logArea.appendText("表结构: " + String.join(", ", tableColumns) + "\n");
-            logger.info("表结构: " + String.join(", ", tableColumns));
+            logArea.appendText("表结构: " + String.join(", ", comments) + "\n");
+            logger.info("表结构: " + String.join(", ", comments));
         }
     }
 
@@ -144,10 +157,10 @@ public class ImportController {
     }
 
     private boolean validateHeaders(List<String> excelHeaders) {
-        // 检查Excel表头是否包含所有必需的数据库列
-        for (String dbColumn : tableColumns) {
-            if (!excelHeaders.contains(dbColumn)) {
-                String message = "Excel文件缺少必需的列: " + dbColumn;
+        // 检查Excel表头（中文）是否包含所有必需的数据库列
+        for (String comment : commentToColumnMap.keySet()) {
+            if (!excelHeaders.contains(comment)) {
+                String message = "Excel文件缺少必需的列: " + comment;
                 logArea.appendText(message + "\n");
                 logger.info(message);
                 showAlert(message);
@@ -160,35 +173,39 @@ public class ImportController {
     private void importData(String filePath, List<String> headers) {
         final int[] successCount = {0};
         final int[] failCount = {0};
-
+        // 生成字段名顺序列表
+        List<String> dbFields = new ArrayList<>();
+        for (String comment : headers) {
+            if (commentToColumnMap.containsKey(comment)) {
+                dbFields.add(commentToColumnMap.get(comment));
+            }
+        }
         EasyExcel.read(filePath, new AnalysisEventListener<Map<Integer, String>>() {
+            boolean isFirstRow = true;
             @Override
             public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                if (isFirstRow) { isFirstRow = false; return; } // 跳过表头
                 try {
                     // 构建插入SQL
                     StringBuilder sql = new StringBuilder("INSERT INTO " + selectedTable + " (");
                     StringBuilder values = new StringBuilder(") VALUES (");
-
-                    for (int i = 0; i < headers.size(); i++) {
+                    for (int i = 0; i < dbFields.size(); i++) {
                         if (i > 0) {
                             sql.append(", ");
                             values.append(", ");
                         }
-                        sql.append(headers.get(i));
+                        sql.append(dbFields.get(i));
                         values.append("?");
                     }
                     sql.append(values).append(")");
-
                     // 准备参数
-                    Object[] params = new Object[headers.size()];
-                    for (int i = 0; i < headers.size(); i++) {
+                    Object[] params = new Object[dbFields.size()];
+                    for (int i = 0; i < dbFields.size(); i++) {
                         params[i] = data.get(i);
                     }
-
                     // 执行插入
                     jdbcTemplate.update(sql.toString(), params);
                     successCount[0]++;
-
                     if (successCount[0] % 100 == 0) {
                         logArea.appendText("已成功导入 " + successCount[0] + " 条数据\n");
                         logger.info("已成功导入 " + successCount[0] + " 条数据");
@@ -199,13 +216,63 @@ public class ImportController {
                     logger.error("导入失败", e);
                 }
             }
-
             @Override
             public void doAfterAllAnalysed(AnalysisContext context) {
                 logArea.appendText("导入完成！成功: " + successCount[0] + " 条，失败: " + failCount[0] + " 条\n");
                 logger.info("导入完成！成功: " + successCount[0] + " 条，失败: " + failCount[0] + " 条");
             }
         }).sheet().doRead();
+    }
+
+    @FXML
+    private void handleExportTemplate() {
+        if (selectedTable == null) {
+            showAlert("请先选择数据表！");
+            return;
+        }
+        try {
+            // 查询字段名和注释，排除id字段
+            List<Map<String, Object>> columns = jdbcTemplate.queryForList(
+                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id'",
+                selectedTable
+            );
+            if (columns.isEmpty()) {
+                showAlert("未找到可导出的字段");
+                return;
+            }
+            // 生成中文表头
+            List<String> header = new ArrayList<>();
+            for (Map<String, Object> col : columns) {
+                String comment = (String) col.get("column_comment");
+                String name = (String) col.get("column_name");
+                header.add((comment == null || comment.isEmpty()) ? name : comment);
+            }
+            // 选择保存路径
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("保存Excel模板");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+            fileChooser.setInitialFileName(selectedTable + "_模板.xlsx");
+            File file = fileChooser.showSaveDialog(exportTemplateButton.getScene().getWindow());
+            if (file == null) return;
+            // 写入Excel
+            List<List<String>> headList = new ArrayList<>();
+            for (String h : header) headList.add(Collections.singletonList(h));
+            // 生成一行示例数据
+            List<String> exampleRow = new ArrayList<>();
+            for (Map<String, Object> col : columns) {
+                String name = (String) col.get("column_name");
+                exampleRow.add("示例数据" + name);
+            }
+            List<List<String>> data = new ArrayList<>();
+            data.add(exampleRow);
+            EasyExcel.write(file).head(headList).sheet("模板").doWrite(data);
+            logArea.appendText("模板导出成功: " + file.getAbsolutePath() + "\n");
+            showAlert("模板导出成功: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            logArea.appendText("模板导出失败: " + e.getMessage() + "\n");
+            logger.error("模板导出失败", e);
+            showAlert("模板导出失败: " + e.getMessage());
+        }
     }
 
     private void showAlert(String message) {
