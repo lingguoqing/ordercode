@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
 
 import java.io.File;
 import java.util.*;
@@ -27,6 +29,9 @@ public class ImportController {
 
     @FXML
     private TextArea logArea;
+
+    @FXML
+    private Button importButton;
 
     private JdbcTemplate jdbcTemplate;
     private String selectedTable;
@@ -78,49 +83,64 @@ public class ImportController {
 
     @FXML
     private void handleImport() {
-        if (selectedTable == null) {
-            showAlert("请先选择数据表！");
-            return;
-        }
-
-        String filePath = filePathField.getText();
-        if (filePath.isEmpty()) {
-            showAlert("请选择Excel文件！");
-            return;
-        }
-
-        try {
-            // 读取Excel文件的第一行作为表头
-            List<String> excelHeaders = new ArrayList<>();
-            EasyExcel.read(filePath, new AnalysisEventListener<Map<Integer, String>>() {
-                @Override
-                public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                    excelHeaders.addAll(headMap.values());
-                    throw new RuntimeException("STOP"); // 只读取第一行
+        importButton.setDisable(true);
+        logArea.appendText("开始导入...\n");
+        Task<Void> importTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                if (selectedTable == null) {
+                    Platform.runLater(() -> showAlert("请先选择数据表！"));
+                    return null;
                 }
-
-                @Override
-                public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                String filePath = filePathField.getText();
+                if (filePath.isEmpty()) {
+                    Platform.runLater(() -> showAlert("请选择Excel文件！"));
+                    return null;
                 }
+                try {
+                    // 读取Excel文件的第一行作为表头（不抛异常）
+                    List<String> excelHeaders = new ArrayList<>();
+                    EasyExcel.read(filePath, new AnalysisEventListener<Map<Integer, String>>() {
+                        @Override
+                        public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
+                            excelHeaders.addAll(headMap.values());
+                        }
+                        @Override
+                        public void invoke(Map<Integer, String> data, AnalysisContext context) {}
+                        @Override
+                        public void doAfterAllAnalysed(AnalysisContext context) {}
+                    }).sheet().headRowNumber(1).doRead();
 
-                @Override
-                public void doAfterAllAnalysed(AnalysisContext context) {
+                    // 检查Excel表头是否与数据库表结构匹配
+                    if (!validateHeaders(excelHeaders)) {
+                        return null;
+                    }
+
+                    // 开始导入数据
+                    importData(filePath, excelHeaders);
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        logArea.appendText("错误: " + e.getMessage() + "\n");
+                        logger.error("导入异常", e);
+                        showAlert("导入失败：" + e.getMessage());
+                    });
                 }
-            }).sheet().doRead();
-
-            // 检查Excel表头是否与数据库表结构匹配
-            if (!validateHeaders(excelHeaders)) {
-                return;
+                return null;
             }
-
-            // 开始导入数据
-            importData(filePath, excelHeaders);
-
-        } catch (Exception e) {
-            logArea.appendText("错误: " + e.getMessage() + "\n");
-            logger.error("错误: " + e.getMessage());
-            showAlert("导入失败：" + e.getMessage());
-        }
+            @Override
+            protected void succeeded() {
+                importButton.setDisable(false);
+            }
+            @Override
+            protected void failed() {
+                importButton.setDisable(false);
+            }
+            @Override
+            protected void cancelled() {
+                importButton.setDisable(false);
+            }
+        };
+        new Thread(importTask).start();
     }
 
     private boolean validateHeaders(List<String> excelHeaders) {
@@ -176,7 +196,7 @@ public class ImportController {
                 } catch (Exception e) {
                     failCount[0]++;
                     logArea.appendText("导入失败: " + e.getMessage() + "\n");
-                    logger.error("导入失败: " + e.getMessage() + "");
+                    logger.error("导入失败", e);
                 }
             }
 

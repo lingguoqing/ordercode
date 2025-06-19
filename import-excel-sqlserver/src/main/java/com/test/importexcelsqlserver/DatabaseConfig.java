@@ -14,9 +14,9 @@ public class DatabaseConfig {
         if (jdbcTemplate == null) {
             DriverManagerDataSource dataSource = new DriverManagerDataSource();
             dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-            dataSource.setUrl("jdbc:mysql://localhost:3306/test?useSSL=false&serverTimezone=UTC");
+            dataSource.setUrl("jdbc:mysql://localhost:3306/ordercode?useSSL=false&serverTimezone=UTC");
             dataSource.setUsername("root");
-            dataSource.setPassword("WfEdcNutanix09");
+            dataSource.setPassword("123456");
             jdbcTemplate = new JdbcTemplate(dataSource);
             logger.info("数据库连接成功");
         }
