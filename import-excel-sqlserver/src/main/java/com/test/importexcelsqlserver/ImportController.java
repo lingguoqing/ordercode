@@ -47,9 +47,9 @@ public class ImportController {
         // 初始化数据库连接
         jdbcTemplate = DatabaseConfig.getJdbcTemplate();
 
-        // 获取所有表名（MySQL）
+        // 获取所有表名（SQL Server）
         List<String> tables = jdbcTemplate.queryForList(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
+            "SELECT name FROM sys.tables",
             String.class
         );
 
@@ -60,10 +60,13 @@ public class ImportController {
     private void handleTableSelection() {
         selectedTable = tableComboBox.getValue();
         if (selectedTable != null) {
-            // 获取选中表的所有非id字段的列名和注释（MySQL）
+            // 获取选中表的所有非id字段的列名和注释（SQL Server）
             commentToColumnMap.clear();
             List<Map<String, Object>> columns = jdbcTemplate.queryForList(
-                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id' ORDER BY ordinal_position",
+                "SELECT c.name AS column_name, ISNULL(ep.value, '') AS column_comment " +
+                "FROM sys.columns c " +
+                "LEFT JOIN sys.extended_properties ep ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = 'MS_Description' " +
+                "WHERE c.object_id = OBJECT_ID(?) AND c.name <> 'id' ORDER BY c.column_id",
                 selectedTable
             );
             List<String> comments = new ArrayList<>();
@@ -244,9 +247,12 @@ public class ImportController {
             return;
         }
         try {
-            // 查询字段名和注释，排除id字段（MySQL）
+            // 查询字段名和注释，排除id字段（SQL Server）
             List<Map<String, Object>> columns = jdbcTemplate.queryForList(
-                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id' ORDER BY ordinal_position",
+                "SELECT c.name AS column_name, ISNULL(ep.value, '') AS column_comment " +
+                "FROM sys.columns c " +
+                "LEFT JOIN sys.extended_properties ep ON ep.major_id = c.object_id AND ep.minor_id = c.column_id AND ep.name = 'MS_Description' " +
+                "WHERE c.object_id = OBJECT_ID(?) AND c.name <> 'id' ORDER BY c.column_id",
                 selectedTable
             );
             if (columns.isEmpty()) {
