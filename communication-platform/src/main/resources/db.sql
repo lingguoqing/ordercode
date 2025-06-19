@@ -8,8 +8,16 @@ CREATE TABLE IF NOT EXISTS `user` (
     `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
     `username` VARCHAR(50) NOT NULL UNIQUE,
     `password` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(100) UNIQUE,
+    `nickname` VARCHAR(50),
+    `avatar_url` VARCHAR(255),
+    `bio` TEXT,
+    `status` TINYINT NOT NULL DEFAULT 1 COMMENT '用户状态：0-禁用，1-启用',
+    `last_login_time` DATETIME,
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_username (username)
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 问题表

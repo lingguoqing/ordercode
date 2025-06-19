@@ -90,6 +90,21 @@
         padding-bottom: 10px;
         border-bottom: 1px solid #eee;
     }
+    .login-tip {
+        text-align: center;
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    .login-tip a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .login-tip a:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <div class="question-detail">
@@ -127,6 +142,11 @@
                 <button type="submit" class="btn-submit">提交回答</button>
             </div>
         </form>
+    </div>
+<% } else { %>
+    <div class="login-tip">
+        想要回答问题？请先 <a href="${pageContext.request.contextPath}/login">登录</a> 或 
+        <a href="${pageContext.request.contextPath}/register">注册</a>
     </div>
 <% } %>
 

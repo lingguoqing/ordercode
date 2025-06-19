@@ -4,12 +4,39 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.communication.platform.communicationplatform.dao.UserDao">
     <insert id="insert" parameterType="com.communication.platform.communicationplatform.entity.User" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO user (username, password, create_time)
-        VALUES (#{username}, #{password}, #{createTime})
+        INSERT INTO user (
+            username, password
+        )
+        VALUES (
+            #{username}, #{password}
+        )
     </insert>
+    
+    <update id="updateUser" parameterType="com.communication.platform.communicationplatform.entity.User">
+        UPDATE user
+        SET 
+            email = #{email},
+            nickname = #{nickname},
+            avatar_url = #{avatarUrl},
+            bio = #{bio},
+            status = #{status},
+            last_login_time = #{lastLoginTime},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateLastLoginTime">
+        UPDATE user
+        SET last_login_time = NOW()
+        WHERE id = #{id}
+    </update>
     
     <select id="findByUsername" resultType="com.communication.platform.communicationplatform.entity.User">
         SELECT * FROM user WHERE username = #{username}
+    </select>
+    
+    <select id="findByEmail" resultType="com.communication.platform.communicationplatform.entity.User">
+        SELECT * FROM user WHERE email = #{email}
     </select>
     
     <select id="findById" resultType="com.communication.platform.communicationplatform.entity.User">
@@ -17,6 +44,6 @@
     </select>
     
     <select id="login" resultType="com.communication.platform.communicationplatform.entity.User">
-        SELECT * FROM user WHERE username = #{username} AND password = #{password}
+        SELECT * FROM user WHERE username = #{username} AND password = #{password} AND status = 1
     </select>
 </mapper> 

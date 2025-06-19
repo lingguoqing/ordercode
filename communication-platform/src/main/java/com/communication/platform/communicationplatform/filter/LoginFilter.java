@@ -26,16 +26,27 @@ public class LoginFilter implements Filter {
 
         // 获取请求路径
         String path = req.getRequestURI().substring(req.getContextPath().length());
+        String method = req.getMethod();
 
-        // 允许访问的路径
-        if (path.equals("/login") || path.equals("/register") || 
-            path.startsWith("/static/") || path.endsWith(".css") || path.endsWith(".js")) {
+        // 允许直接访问的路径
+        if (path.equals("/") || path.equals("/index.jsp") || 
+            path.equals("/login") || path.equals("/register") || 
+            path.startsWith("/static/") || path.endsWith(".css") || path.endsWith(".js") ||
+            (path.equals("/question") && method.equals("GET"))) {
             chain.doFilter(request, response);
             return;
         }
 
         // 检查是否已登录
         if (SecurityUtil.getLoginUser(req.getSession()) == null) {
+            // 如果是AJAX请求，返回JSON
+            String xhr = req.getHeader("X-Requested-With");
+            if ("XMLHttpRequest".equals(xhr)) {
+                resp.setContentType("application/json;charset=UTF-8");
+                resp.getWriter().write("{\"code\": 401, \"message\": \"请先登录\"}");
+                return;
+            }
+            // 普通请求重定向到登录页
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }

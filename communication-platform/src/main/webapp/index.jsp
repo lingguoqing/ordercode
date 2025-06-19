@@ -2,9 +2,12 @@
 <%@ page import="com.communication.platform.communicationplatform.entity.Question" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="com.communication.platform.communicationplatform.entity.User" %>
+<%@ page import="com.communication.platform.communicationplatform.util.SecurityUtil" %>
 <% 
     List<Question> questions = (List<Question>) request.getAttribute("questions");
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    User loginUser = SecurityUtil.getLoginUser(session);
 %>
 
 <jsp:include page="/common/header.jsp">
@@ -54,7 +57,46 @@
         padding: 40px;
         color: #666;
     }
+    .login-tip {
+        text-align: center;
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    .login-tip a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .login-tip a:hover {
+        text-decoration: underline;
+    }
+    .ask-tip {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .ask-tip h2 {
+        margin: 0;
+        color: #333;
+    }
 </style>
+
+<% if (loginUser == null) { %>
+    <div class="login-tip">
+        想要提问或回答？请先 <a href="${pageContext.request.contextPath}/login">登录</a> 或 
+        <a href="${pageContext.request.contextPath}/register">注册</a>
+    </div>
+<% } %>
+
+<div class="ask-tip">
+    <h2>最新问题</h2>
+    <% if (loginUser != null) { %>
+        <a href="${pageContext.request.contextPath}/ask" class="btn-ask">我要提问</a>
+    <% } %>
+</div>
 
 <div class="question-list">
     <% if (questions != null && !questions.isEmpty()) { %>
@@ -77,7 +119,7 @@
         <% } %>
     <% } else { %>
         <div class="empty-message">
-            暂无问题，快来提问吧！
+            暂无问题
         </div>
     <% } %>
 </div>
