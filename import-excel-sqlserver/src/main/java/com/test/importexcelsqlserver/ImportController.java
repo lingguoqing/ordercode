@@ -181,10 +181,8 @@ public class ImportController {
             }
         }
         EasyExcel.read(filePath, new AnalysisEventListener<Map<Integer, String>>() {
-            boolean isFirstRow = true;
             @Override
             public void invoke(Map<Integer, String> data, AnalysisContext context) {
-                if (isFirstRow) { isFirstRow = false; return; } // 跳过表头
                 try {
                     // 构建插入SQL
                     StringBuilder sql = new StringBuilder("INSERT INTO " + selectedTable + " (");
@@ -212,7 +210,22 @@ public class ImportController {
                     }
                 } catch (Exception e) {
                     failCount[0]++;
-                    logArea.appendText("导入失败: " + e.getMessage() + "\n");
+                    String userMsg;
+                    String errMsg = e.getMessage();
+                    if (errMsg != null) {
+                        if (errMsg.contains("Duplicate entry")) {
+                            userMsg = "导入失败：有重复的数据（如主键或唯一字段已存在）";
+                        } else if (errMsg.contains("Data truncation") || errMsg.contains("Incorrect") || errMsg.contains("format")) {
+                            userMsg = "导入失败：数据格式有误，请检查日期、数字等格式";
+                        } else if (errMsg.contains("cannot be null") || errMsg.contains("NULL") || errMsg.contains("not null")) {
+                            userMsg = "导入失败：有必填项未填写";
+                        } else {
+                            userMsg = "导入失败，请检查数据格式或联系管理员";
+                        }
+                    } else {
+                        userMsg = "导入失败，请检查数据格式或联系管理员";
+                    }
+                    logArea.appendText(userMsg + "\n");
                     logger.error("导入失败", e);
                 }
             }
