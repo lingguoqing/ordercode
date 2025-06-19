@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import java.util.Properties;
+import java.io.InputStream;
 
 public class DatabaseConfig {
     private static JdbcTemplate jdbcTemplate;
@@ -12,13 +14,19 @@ public class DatabaseConfig {
 
     public static JdbcTemplate getJdbcTemplate() {
         if (jdbcTemplate == null) {
-            DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-            dataSource.setUrl("jdbc:mysql://localhost:3306/ordercode?useSSL=false&serverTimezone=UTC");
-            dataSource.setUsername("root");
-            dataSource.setPassword("123456");
-            jdbcTemplate = new JdbcTemplate(dataSource);
-            logger.info("数据库连接成功");
+            try (InputStream in = DatabaseConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
+                Properties props = new Properties();
+                props.load(in);
+                DriverManagerDataSource dataSource = new DriverManagerDataSource();
+                dataSource.setDriverClassName(props.getProperty("db.driverClassName"));
+                dataSource.setUrl(props.getProperty("db.url"));
+                dataSource.setUsername(props.getProperty("db.username"));
+                dataSource.setPassword(props.getProperty("db.password"));
+                jdbcTemplate = new JdbcTemplate(dataSource);
+                logger.info("数据库连接成功");
+            } catch (Exception e) {
+                logger.error("数据库连接失败", e);
+            }
         }
         return jdbcTemplate;
     }

@@ -47,10 +47,10 @@ public class ImportController {
         // 初始化数据库连接
         jdbcTemplate = DatabaseConfig.getJdbcTemplate();
 
-        // 获取所有表名
+        // 获取所有表名（MySQL）
         List<String> tables = jdbcTemplate.queryForList(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
-                String.class
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
+            String.class
         );
 
         tableComboBox.getItems().addAll(tables);
@@ -60,7 +60,7 @@ public class ImportController {
     private void handleTableSelection() {
         selectedTable = tableComboBox.getValue();
         if (selectedTable != null) {
-            // 获取选中表的所有非id字段的列名和注释
+            // 获取选中表的所有非id字段的列名和注释（MySQL）
             commentToColumnMap.clear();
             List<Map<String, Object>> columns = jdbcTemplate.queryForList(
                 "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id' ORDER BY ordinal_position",
@@ -244,9 +244,9 @@ public class ImportController {
             return;
         }
         try {
-            // 查询字段名和注释，排除id字段
+            // 查询字段名和注释，排除id字段（MySQL）
             List<Map<String, Object>> columns = jdbcTemplate.queryForList(
-                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id'",
+                "SELECT column_name, column_comment FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name <> 'id' ORDER BY ordinal_position",
                 selectedTable
             );
             if (columns.isEmpty()) {
