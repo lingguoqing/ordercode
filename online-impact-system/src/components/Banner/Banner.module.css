@@ -1,0 +1,10 @@
+.banner {
+  width: 100%;
+  padding: 0 15px; /* Add some padding to match the movie list items */
+}
+
+.bannerImage {
+  width: 100%;
+  height: auto;
+  display: block;
+} 
