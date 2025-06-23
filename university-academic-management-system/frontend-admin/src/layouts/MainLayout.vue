@@ -18,20 +18,28 @@
           active-text-color="#ffd04b"
         >
           <el-menu-item index="/admin/students">
-            <i class="el-icon-user"></i>
+            <el-icon><User /></el-icon>
             <span>学生管理</span>
           </el-menu-item>
           <el-menu-item index="/admin/teachers">
-            <i class="el-icon-user-solid"></i>
+            <el-icon><Avatar /></el-icon>
             <span>教师管理</span>
           </el-menu-item>
           <el-menu-item index="/admin/classes">
-            <i class="el-icon-school"></i>
+            <el-icon><School /></el-icon>
             <span>班级管理</span>
           </el-menu-item>
           <el-menu-item index="/admin/courses">
-            <i class="el-icon-collection"></i>
+            <el-icon><Collection /></el-icon>
             <span>课程管理</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/exams">
+            <el-icon><Document /></el-icon>
+            <span>考试管理</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/majors">
+            <el-icon><Notebook /></el-icon>
+            <span>专业管理</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -46,6 +54,14 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessageBox } from 'element-plus';
+import {
+  User,
+  Avatar,
+  School,
+  Collection,
+  Document,
+  Notebook
+} from '@element-plus/icons-vue';
 
 const router = useRouter();
 const adminName = ref('Admin');

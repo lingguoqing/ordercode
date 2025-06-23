@@ -41,6 +41,9 @@ public class TeacherController {
 
     @PostMapping
     public boolean createTeacher(@RequestBody Teacher teacher) {
+        if (!StringUtils.hasText(teacher.getPassword())) {
+            teacher.setPassword("123456"); // Set default password
+        }
         return teacherService.save(teacher);
     }
 

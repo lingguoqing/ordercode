@@ -41,7 +41,7 @@ const handleLogin = async () => {
     const response = await axios.post('/api/login', form);
     localStorage.setItem('user', JSON.stringify(response.data));
     ElMessage.success('登录成功');
-    router.push('/');
+    router.push('/admin/students');
   } catch (error) {
     ElMessage.error('用户名或密码错误');
     console.error(error);

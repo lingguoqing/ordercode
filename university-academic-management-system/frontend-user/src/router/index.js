@@ -8,6 +8,9 @@ const Login = () => import('../views/Login.vue');
 const StudentProfile = () => import('../views/student/Profile.vue');
 const StudentGrades = () => import('../views/student/Grades.vue');
 const StudentCourses = () => import('../views/student/Courses.vue');
+const StudentSelectedCourses = () => import('../views/student/SelectedCourses.vue');
+const StudentSchedule = () => import('../views/student/Schedule.vue');
+const StudentExams = () => import('../views/student/Exams.vue');
 const TeacherProfile = () => import('../views/teacher/Profile.vue');
 const TeacherCourses = () => import('../views/teacher/Courses.vue');
 const TeacherGrading = () => import('../views/teacher/Grading.vue');
@@ -27,7 +30,10 @@ const routes = [
     children: [
       { path: 'profile', name: 'StudentProfile', component: StudentProfile },
       { path: 'grades', name: 'StudentGrades', component: StudentGrades },
-      { path: 'courses', name: 'StudentCourses', component: StudentCourses }
+      { path: 'courses', name: 'StudentCourses', component: StudentCourses },
+      { path: 'selected-courses', name: 'StudentSelectedCourses', component: StudentSelectedCourses },
+      { path: 'schedule', name: 'StudentSchedule', component: StudentSchedule },
+      { path: 'exams', name: 'StudentExams', component: StudentExams }
       // other student routes like /student/courses can be added here
     ]
   },

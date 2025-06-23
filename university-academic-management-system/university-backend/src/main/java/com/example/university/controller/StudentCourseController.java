@@ -1,6 +1,7 @@
 package com.example.university.controller;
 
 import com.example.university.dto.GradeVO;
+import com.example.university.dto.ScheduleVO;
 import com.example.university.dto.StudentGradeVO;
 import com.example.university.dto.UpdateGradeDTO;
 import com.example.university.entity.StudentCourse;
@@ -22,6 +23,11 @@ public class StudentCourseController {
 
     @Autowired
     private StudentCourseService studentCourseService;
+
+    @GetMapping("/student/{studentId}/schedule")
+    public List<ScheduleVO> getStudentSchedule(@PathVariable Integer studentId) {
+        return studentCourseService.getScheduleByStudentId(studentId);
+    }
 
     @GetMapping("/student/{studentId}/grades")
     public List<GradeVO> getStudentGrades(@PathVariable Integer studentId) {

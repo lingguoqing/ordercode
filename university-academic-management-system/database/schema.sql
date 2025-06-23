@@ -62,6 +62,8 @@ CREATE TABLE `course` (
   `name` VARCHAR(255) NOT NULL COMMENT '课程名称',
   `credit` DECIMAL(3, 1) COMMENT '学分',
   `type` VARCHAR(255) COMMENT '课程类型',
+  `class_time` VARCHAR(255) COMMENT '上课时间',
+  `location` VARCHAR(255) COMMENT '上课地点',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程表';
 
@@ -95,6 +97,31 @@ CREATE TABLE `teacher_course` (
   FOREIGN KEY (`teacher_id`) REFERENCES `teacher`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='教师授课表';
+
+-- ----------------------------
+-- Table structure for exam
+-- 考试安排表
+-- ----------------------------
+DROP TABLE IF EXISTS `exam`;
+CREATE TABLE `exam` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `course_id` INT NOT NULL COMMENT '课程ID',
+  `exam_time` DATETIME COMMENT '考试时间',
+  `location` VARCHAR(255) COMMENT '考试地点',
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='考试安排表';
+
+-- ----------------------------
+-- Table structure for major
+-- 专业表
+-- ----------------------------
+DROP TABLE IF EXISTS `major`;
+CREATE TABLE `major` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL UNIQUE COMMENT '专业名称',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='专业表';
 
 -- ----------------------------
 -- Table structure for admin

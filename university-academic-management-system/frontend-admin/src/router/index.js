@@ -5,6 +5,8 @@ import MainLayout from '../layouts/MainLayout.vue';
 import TeacherManagement from '../components/TeacherManagement.vue';
 import ClassManagement from '../components/ClassManagement.vue';
 import CourseManagement from '../components/CourseManagement.vue';
+import ExamManagement from '../components/ExamManagement.vue';
+import MajorManagement from '../components/MajorManagement.vue';
 
 const routes = [
   {
@@ -14,46 +16,20 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'Layout',
     component: MainLayout,
-    meta: { requiresAuth: true },
-    redirect: '/admin/students',
     children: [
-      {
-        path: 'students',
-        name: 'StudentManagement',
-        component: StudentManagement,
-        meta: { title: '学生管理' }
-      },
-      {
-        path: 'teachers',
-        name: 'TeacherManagement',
-        component: TeacherManagement,
-        meta: { title: '教师管理' }
-      },
-      {
-        path: 'classes',
-        name: 'ClassManagement',
-        component: ClassManagement,
-        meta: { title: '班级管理' }
-      },
-      {
-        path: 'courses',
-        name: 'CourseManagement',
-        component: CourseManagement,
-        meta: { title: '课程管理' }
-      }
+      { path: 'students', name: 'StudentManagement', component: StudentManagement },
+      { path: 'teachers', name: 'TeacherManagement', component: TeacherManagement },
+      { path: 'classes', name: 'ClassManagement', component: ClassManagement },
+      { path: 'courses', name: 'CourseManagement', component: CourseManagement },
+      { path: 'exams', name: 'ExamManagement', component: ExamManagement },
+      { path: 'majors', name: 'MajorManagement', component: MajorManagement },
+      { path: '', redirect: '/admin/students' }
     ]
   },
   {
     path: '/',
-    redirect: to => {
-      const loggedIn = localStorage.getItem('user');
-      if (loggedIn) {
-        return { path: '/admin/students' };
-      }
-      return { path: '/login' };
-    },
+    redirect: '/login'
   }
 ];
 

@@ -23,6 +23,12 @@
            <el-menu-item index="/student/courses">
             <span>在线选课</span>
           </el-menu-item>
+          <el-menu-item index="/student/selected-courses">
+            <span>已选课程</span>
+          </el-menu-item>
+          <el-menu-item index="/student/exams">
+            <span>我的考试</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       <el-main class="main-content">
@@ -68,4 +74,4 @@ const logout = () => {
 .aside { border-right: 1px solid #dcdfe6; }
 .el-menu { border-right: none; }
 .main-content { padding: 20px; background-color: #f4f5f7; }
-</style> 
+</style>

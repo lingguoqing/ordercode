@@ -3,6 +3,7 @@ package com.example.university.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.university.dto.GradeVO;
+import com.example.university.dto.ScheduleVO;
 import com.example.university.dto.StudentGradeVO;
 import com.example.university.entity.StudentCourse;
 import com.example.university.mapper.StudentCourseMapper;
@@ -16,6 +17,10 @@ public class StudentCourseService extends ServiceImpl<StudentCourseMapper, Stude
 
     public List<GradeVO> getGradesByStudentId(Integer studentId) {
         return baseMapper.findGradesByStudentId(studentId);
+    }
+
+    public List<ScheduleVO> getScheduleByStudentId(Integer studentId) {
+        return baseMapper.findScheduleByStudentId(studentId);
     }
 
     public List<StudentGradeVO> getStudentsWithGradesByCourseId(Integer courseId) {

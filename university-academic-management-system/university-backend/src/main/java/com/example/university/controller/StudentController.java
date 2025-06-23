@@ -37,6 +37,9 @@ public class StudentController {
 
     @PostMapping
     public boolean createStudent(@RequestBody Student student) {
+        if (!StringUtils.hasText(student.getPassword())) {
+            student.setPassword("123456"); // Set default password
+        }
         return studentService.save(student);
     }
 
