@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的借阅 - 图书管理系统</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f7f7f7; }
+        .container { padding: 40px 0; max-width: 1100px; margin: auto; }
+        h1 { color: #333; margin-bottom: 30px; text-align: left; }
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #e0e0e0; padding: 12px 10px; text-align: center; }
+        th { background-color: #f2f2f2; font-weight: bold; font-size: 1.05rem; }
+        tr:hover { background-color: #f5f7fa; }
+        .action-btn { color: #fff; padding: 5px 14px; text-decoration: none; border-radius: 4px; margin-right: 5px; font-size: 15px; border: none; display: inline-block; }
+        .return-btn { background-color: #28a745; }
+        .disabled { background-color: #6c757d; cursor: not-allowed; }
+        .navbar {
+            background-color: #222;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+        }
+        .navbar a {
+            color: #fff;
+            text-align: center;
+            padding: 0 18px;
+            text-decoration: none;
+            font-size: 17px;
+            line-height: 56px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .navbar a.logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #4fc3f7;
+            padding-left: 0;
+        }
+        .navbar a:hover {
+            background-color: #444;
+            color: #4fc3f7;
+        }
+        .navbar .user-info {
+            color: #f2f2f2;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .navbar .user-info span {
+            margin-right: 18px;
+        }
+        .navbar .user-info a {
+            color: #ff5252;
+            background: #fff;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 15px;
+            margin-left: 0;
+            line-height: 1.5;
+        }
+        .navbar .user-info a:hover {
+            background: #ff5252;
+            color: #fff;
+        }
+        .navbar { margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{header_user :: header}"></div>
+
+<div class="container">
+    <h1>我的借阅记录</h1>
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <table>
+        <thead>
+        <tr>
+            <th>借阅ID</th>
+            <th>图书ID</th>
+            <th>借阅时间</th>
+            <th>归还时间</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="borrow : ${borrows}">
+            <td th:text="${borrow.id}"></td>
+            <td th:text="${borrow.bookId}"></td>
+            <td th:text="${borrow.borrowTime != null ? #temporals.format(borrow.borrowTime, 'yyyy-MM-dd HH:mm') : ''}"></td>
+            <td th:text="${borrow.returnTime != null ? #temporals.format(borrow.returnTime, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+            <td th:text="${borrow.status == 'borrowed' ? '借阅中' : '已归还'}"></td>
+            <td>
+                <a th:if="${borrow.status == 'borrowed'}"
+                   th:href="@{/user/return/{id}(id=${borrow.bookId})}"
+                   class="action-btn return-btn">归还</a>
+                <span th:if="${borrow.status != 'borrowed'}" class="action-btn disabled">已归还</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html> 

@@ -34,7 +34,7 @@ urlpatterns = [
     path('user/<int:nid>/delete/', staff_views.user_delete),
 
     # 登录与注销
-    path('login/', staff_views.login),
+    path('', staff_views.login),
     path('logout/', staff_views.logout),
 
     # 个人资料
