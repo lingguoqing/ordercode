@@ -3,10 +3,8 @@ package com.test.importexcelsqlserver;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
 import javafx.scene.control.Alert;
-
-import java.io.IOException;
+import javafx.stage.Stage;
 
 public class HelloApplication extends Application {
     @Override
