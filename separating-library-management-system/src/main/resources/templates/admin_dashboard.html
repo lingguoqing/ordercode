@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>后台管理 - 图书管理系统</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; }
+        .container { padding: 40px; text-align: center; }
+        h1 { color: #333; }
+        .links { margin-top: 40px; }
+        .links a { display: inline-block; margin: 0 20px; padding: 20px 40px; background: #007bff; color: #fff; border-radius: 8px; text-decoration: none; font-size: 1.2rem; transition: background 0.2s; }
+        .links a:hover { background: #0056b3; }
+        .navbar {
+            background-color: #222;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+        }
+        .navbar a {
+            color: #fff;
+            text-align: center;
+            padding: 0 18px;
+            text-decoration: none;
+            font-size: 17px;
+            line-height: 56px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .navbar a.logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #4fc3f7;
+            padding-left: 0;
+        }
+        .navbar a:hover {
+            background-color: #444;
+            color: #4fc3f7;
+        }
+        .navbar .user-info {
+            color: #f2f2f2;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .navbar .user-info span {
+            margin-right: 18px;
+        }
+        .navbar .user-info a {
+            color: #ff5252;
+            background: #fff;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 15px;
+            margin-left: 0;
+            line-height: 1.5;
+        }
+        .navbar .user-info a:hover {
+            background: #ff5252;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{header_admin :: header}"></div>
+<div class="container">
+    <h1>欢迎进入图书管理系统后台</h1>
+    <div class="links">
+        <a th:href="@{/admin/users}">用户管理</a>
+        <a th:href="@{/admin/books}">图书管理</a>
+    </div>
+</div>
+</body>
+</html> 
