@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.Integer?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.demo.librarymanagementsystemgui.BookController" stylesheets="@style.css">
+    <top>
+        <VBox>
+            <Label fx:id="titleLabel" text="图书管理系统" alignment="CENTER" maxWidth="1.7976931348623157E308" />
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="搜索：" />
+                <TextField fx:id="tfSearch" promptText="书名/作者/ISBN" />
+                <Button text="查询" onAction="#onSearch" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="重置" onAction="#onReset" />
+                <Button text="添加图书" onAction="#onAddBookDialog" />
+                <Button text="批量删除" onAction="#onBatchDelete" />
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="tableView" editable="true">
+            <columns>
+                <TableColumn fx:id="colSelect" text="选择" prefWidth="40" />
+                <TableColumn fx:id="colId" text="ID" prefWidth="50" />
+                <TableColumn fx:id="colTitle" text="书名" prefWidth="150" />
+                <TableColumn fx:id="colAuthor" text="作者" prefWidth="100" />
+                <TableColumn fx:id="colIsbn" text="ISBN" prefWidth="120" />
+                <TableColumn fx:id="colStock" text="库存" prefWidth="60" />
+                <TableColumn fx:id="colPublisher" text="出版社" prefWidth="120" />
+                <TableColumn fx:id="colAction" text="操作" prefWidth="160" />
+            </columns>
+        </TableView>
+    </center>
+    <bottom>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Label fx:id="lblTotalCount" text="总记录：0" />
+                <Label text="每页：" />
+                <ComboBox fx:id="cbPageSize" prefWidth="70">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <Integer fx:value="10" />
+                            <Integer fx:value="20" />
+                            <Integer fx:value="50" />
+                            <Integer fx:value="100" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+                <Button text="上一页" onAction="#onPrevPage" />
+                <Label fx:id="lblPageInfo" text="第1页/共1页" />
+                <Button text="下一页" onAction="#onNextPage" />
+            </HBox>
+        </VBox>
+    </bottom>
+</BorderPane> 
