@@ -55,7 +55,7 @@ public class AiChatModel {
                         MessageChatMemoryAdvisor.builder(myChatMemory).build() // 对话历史记录添加到提示中
 //                        QuestionAnswerAdvisor.builder().build()
                 )
-                .defaultOptions(ChatOptions.builder().topK(40).build())
+                .defaultOptions(ChatOptions.builder().temperature(0.5).build())
 //                .defaultSystem()
                 .build();
     }
