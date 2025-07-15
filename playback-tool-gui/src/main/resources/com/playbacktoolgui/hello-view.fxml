@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.playbacktoolgui.HelloController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label fx:id="welcomeText" text="请上传一个MP3文件"/>
+    <Button onAction="#onChooseFileClick" text="上传MP3文件"/>
+    <Button onAction="#onPlayClick" text="播放"/>
+    <Button onAction="#onStopClick" text="停止"/>
+    <Label text="音量"/>
+    <Slider fx:id="volumeSlider" blockIncrement="0.01" max="1" onMouseReleased="#onVolumeChange" value="0.5"/>
+</VBox>

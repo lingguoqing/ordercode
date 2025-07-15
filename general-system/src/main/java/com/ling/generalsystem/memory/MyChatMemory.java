@@ -8,6 +8,8 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -64,10 +66,11 @@ public class MyChatMemory extends InMemoryChatMemory {
             } else if ("TOOL_RESPONSE".equalsIgnoreCase(type) || "TOOLRESPONSE".equalsIgnoreCase(type)) {
                 try {
                     java.util.List<org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse> toolResponses =
-                        objectMapper.readValue(
-                            text,
-                            new TypeReference<java.util.List<org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse>>() {}
-                        );
+                            objectMapper.readValue(
+                                    text,
+                                    new TypeReference<java.util.List<org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse>>() {
+                                    }
+                            );
                     msg = new org.springframework.ai.chat.messages.ToolResponseMessage(toolResponses);
                 } catch (Exception e) {
                     msg = new org.springframework.ai.chat.messages.ToolResponseMessage(java.util.Collections.emptyList());
@@ -86,8 +89,8 @@ public class MyChatMemory extends InMemoryChatMemory {
     public void clear(String conversationId) {
         // 逻辑删除所有该会话的消息
         aiDialogueService.remove(
-            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<AiDialogue>()
-                .eq("conversation_id", conversationId)
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<AiDialogue>()
+                        .eq("conversation_id", conversationId)
         );
     }
 }
