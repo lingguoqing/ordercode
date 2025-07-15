@@ -1,4 +1,7 @@
-package com.demo.librarymanagementsystemgui;
+package com.demo.librarymanagementsystemgui.service;
+
+import com.demo.librarymanagementsystemgui.dao.BookDAO;
+import com.demo.librarymanagementsystemgui.entity.Book;
 
 import java.util.List;
 

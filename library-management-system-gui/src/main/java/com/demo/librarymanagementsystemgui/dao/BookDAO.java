@@ -1,4 +1,7 @@
-package com.demo.librarymanagementsystemgui;
+package com.demo.librarymanagementsystemgui.dao;
+
+import com.demo.librarymanagementsystemgui.entity.Book;
+import com.demo.librarymanagementsystemgui.utils.DBUtil;
 
 import java.sql.*;
 import java.util.ArrayList;

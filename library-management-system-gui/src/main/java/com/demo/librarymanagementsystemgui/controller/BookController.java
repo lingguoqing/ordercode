@@ -1,18 +1,17 @@
-package com.demo.librarymanagementsystemgui;
+package com.demo.librarymanagementsystemgui.controller;
 
+import com.demo.librarymanagementsystemgui.entity.Book;
+import com.demo.librarymanagementsystemgui.service.BookService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.ComboBox;
 
 public class BookController {
     @FXML

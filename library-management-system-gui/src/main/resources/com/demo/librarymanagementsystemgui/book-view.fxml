@@ -5,7 +5,7 @@
 <?import javafx.collections.FXCollections?>
 <?import java.lang.Integer?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.demo.librarymanagementsystemgui.BookController" stylesheets="@style.css">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.demo.librarymanagementsystemgui.controller.BookController" stylesheets="@style.css">
     <top>
         <VBox>
             <Label fx:id="titleLabel" text="图书管理系统" alignment="CENTER" maxWidth="1.7976931348623157E308" />

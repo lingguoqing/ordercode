@@ -1,4 +1,4 @@
-package com.demo.librarymanagementsystemgui;
+package com.demo.librarymanagementsystemgui.entity;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
