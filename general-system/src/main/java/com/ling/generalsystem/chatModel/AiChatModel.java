@@ -1,12 +1,12 @@
 package com.ling.generalsystem.chatModel;
 
-import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
-import com.ling.generalsystem.advisor.MyCustomSimpleLoggerAdvisor;
-import com.ling.generalsystem.memory.MyChatMemory;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.tool.ToolCallback;
@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
 /**
  * Author: guoqing.ling@wfjt.com
@@ -33,43 +31,37 @@ public class AiChatModel {
     private ToolCallback[] toolCallbacks;
 
     @Autowired
-    public AiChatModel(ChatModel dashscopeChatModel, MyChatMemory myChatMemory) {
-        this.chatClient = ChatClient.builder(dashscopeChatModel)
+    public AiChatModel(MessageWindowChatMemory memory, ChatModel ollamaChatModel) {
+        this.chatClient = ChatClient.builder(ollamaChatModel)
                 .defaultOptions(
-                        DashScopeChatOptions.builder()
-                                .withTopP(0.1)
-                                .withMaxToken(1)
-                                .withRepetitionPenalty(0.5)
-                                .withTemperature(0.1)
+                        ChatOptions.builder()
                                 .build()
                 )
-                .defaultSystem("我是一个优秀的程序员，会java、python语言")
-                .defaultAdvisors(new MyCustomSimpleLoggerAdvisor(),
-                        new MessageChatMemoryAdvisor(myChatMemory)
+                .defaultAdvisors(
+                        MessageChatMemoryAdvisor.builder(memory).build(),
+                        SimpleLoggerAdvisor.builder().build()
                 )
                 .build();
     }
 
     public String getString(String userInput, String conversationId) {
         return chatClient
-                .prompt()
-                .advisors(advisor -> advisor.param(CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 100))
-                .user(userInput)
+                .prompt(userInput)
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .toolCallbacks(toolCallbacks)
+//                .user(userInput)
                 .call()
                 .chatResponse()
                 .getResult()
                 .getOutput()
-                .toString();
+                .getText();
     }
 
     public Flux<String> getStream(String userInput, String conversationId) {
         return chatClient
-                .prompt()
-                .advisors(advisor -> advisor.param(CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 1000)) // 对话历史记录添加到提示中))
-                .user(userInput)
-                .tools(toolCallbacks)
+                .prompt(userInput)
+                .toolCallbacks(toolCallbacks)
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId)) // 对话历史记录添加到提示中))
                 .stream()
                 .content();
     }

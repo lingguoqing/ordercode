@@ -1,11 +1,11 @@
 package com.ling.generalsystem.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ling.generalsystem.entity.AiDialogue;
 import com.ling.generalsystem.mapper.AiDialogueMapper;
 import com.ling.generalsystem.service.AiDialogueService;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import java.util.Collections;
 import java.util.List;

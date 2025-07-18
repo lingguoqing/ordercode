@@ -6,11 +6,22 @@ spring:
   application:
     name: general-system
   ai:
+    ollama:
+      base-url: http://10.51.250.160/ollama/
+      chat:
+        model: qwen3:0.6b
+
     dash-scope:
       api-key: sk-a831fb86ef4a4c2abcd8461114e96e3b
-      chat:
-        options:
-          model: qwen-plus-2025-01-25
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+            schema: classpath:/schema-mariadb.sql
+            platform: mariadb
+      options:
+        model: qwen-plus-2025-01-25
   datasource:
     type: com.mysql.cj.jdbc.MysqlDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver

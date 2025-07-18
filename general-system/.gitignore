@@ -19,7 +19,7 @@ target/
 *.iml
 *.ipr
 ./frontend-vue3-sse-typer/node_modules/**
-logs
+logs/**
 
 ### NetBeans ###
 /nbproject/private/

@@ -1,11 +1,10 @@
 package com.ling.generalsystem.controller;
 
 import com.ling.generalsystem.chatModel.AiChatModel;
-import com.ling.generalsystem.memory.MyChatMemory;
+import com.ling.generalsystem.tools.DateTimeTools;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.util.MimeTypeUtils;
@@ -15,23 +14,26 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.List;
 
 @RequestMapping
 @RestController
 class AiController {
-
-    @Resource
-    private MyChatMemory myChatMemory;
-
     @Resource
     private AiChatModel aiChatModel;
 
     @Resource
-    private ChatModel chatModel;
+    private OllamaChatModel ollamaChatModel;
+
+
 
     @GetMapping("/ai")
     String generation(String userInput, String conversationId) {
+        String response = ChatClient.create(ollamaChatModel)
+                .prompt("What day is tomorrow?")
+                .tools(new DateTimeTools())
+                .call()
+                .content();
+        System.out.println(response);
         return aiChatModel.getString(userInput, conversationId);
     }
 
@@ -59,7 +61,7 @@ class AiController {
 
     @GetMapping("/test")
     public String test() {
-        return ChatClient.create(chatModel).prompt()
+        return ChatClient.create(ollamaChatModel).prompt()
                 .user(u -> u.text("Explain what do you see on this picture?")
                         .media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("./multimodal.test.png")))
                 .call()
@@ -67,15 +69,9 @@ class AiController {
     }
 
 
-    @GetMapping("/clear")
-    public String clear(String conversationId) {
-        myChatMemory.clear(conversationId);
-        return "清楚成功";
-    }
-
-    @GetMapping("/message")
+/*    @GetMapping("/message")
     public List<Message> message(String conversationId, int lastN) {
         return myChatMemory.get(conversationId, lastN);
-    }
+    }*/
 
 }
