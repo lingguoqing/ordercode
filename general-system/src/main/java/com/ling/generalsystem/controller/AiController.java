@@ -1,10 +1,8 @@
 package com.ling.generalsystem.controller;
 
 import com.ling.generalsystem.chatModel.AiChatModel;
-import com.ling.generalsystem.tools.DateTimeTools;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.util.MimeTypeUtils;
@@ -21,19 +19,13 @@ class AiController {
     @Resource
     private AiChatModel aiChatModel;
 
-    @Resource
-    private OllamaChatModel ollamaChatModel;
+
 
 
 
     @GetMapping("/ai")
     String generation(String userInput, String conversationId) {
-        String response = ChatClient.create(ollamaChatModel)
-                .prompt("What day is tomorrow?")
-                .tools(new DateTimeTools())
-                .call()
-                .content();
-        System.out.println(response);
+
         return aiChatModel.getString(userInput, conversationId);
     }
 
@@ -57,15 +49,6 @@ class AiController {
         );
 
         return emitter;
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        return ChatClient.create(ollamaChatModel).prompt()
-                .user(u -> u.text("Explain what do you see on this picture?")
-                        .media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("./multimodal.test.png")))
-                .call()
-                .content();
     }
 
 

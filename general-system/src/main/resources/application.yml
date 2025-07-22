@@ -7,12 +7,11 @@ spring:
     name: general-system
   ai:
     ollama:
-      base-url: http://10.51.250.160/ollama/
+      base-url: http://127.0.0.1/ollama/
       chat:
-        model: qwen3:0.6b
-
+        model: qwen3:0.6b  # 换成自己运行的模型
     dash-scope:
-      api-key: sk-a831fb86ef4a4c2abcd8461114e96e3b
+      api-key: sk-e7a508dd19494dd6a294ce68bb75424d
     chat:
       memory:
         repository:

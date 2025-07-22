@@ -1,6 +1,8 @@
 package com.ling.generalsystem.memory;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +21,6 @@ public class MyChatMemory {
 
     @Autowired
     private JdbcChatMemoryRepository chatMemoryRepository;
-
-
 
 
     @Bean
