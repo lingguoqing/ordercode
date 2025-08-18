@@ -10,7 +10,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 
-    # 预约限制配置（环境变量可覆盖）
+    # Booking window configuration (overridable by environment variables)
     book_start_str = os.environ.get("BOOK_START", "08:00")
     book_end_str = os.environ.get("BOOK_END", "22:00")
     min_days_ahead = int(os.environ.get("BOOK_MIN_DAYS_AHEAD", "0"))
@@ -52,7 +52,7 @@ def create_app() -> Flask:
         def wrapper(*args, **kwargs):
             user = get_current_user()
             if not user or user["role"] != "admin":
-                flash("需要管理员权限。", "warning")
+                flash("Administrator privilege required.", "warning")
                 return redirect(url_for("index"))
             return view_func(*args, **kwargs)
         wrapper.__name__ = view_func.__name__
@@ -89,7 +89,7 @@ def create_app() -> Flask:
         cur.close()
         cnx.close()
         if not room:
-            flash("教室不存在。", "warning")
+            flash("Classroom not found.", "warning")
             return redirect(url_for("classrooms"))
         return render_template("classroom_detail.html", room=room)
 
@@ -103,10 +103,10 @@ def create_app() -> Flask:
         if not room:
             cur.close()
             cnx.close()
-            flash("教室不存在。", "warning")
+            flash("Classroom not found.", "warning")
             return redirect(url_for("classrooms"))
 
-        # 计算可预约日期范围（含起止）
+        # Calculate bookable date range (inclusive)
         today = date.today()
         min_date = today + timedelta(days=min_days_ahead)
         max_date = today + timedelta(days=max_days_ahead)
@@ -121,7 +121,7 @@ def create_app() -> Flask:
             end_time = request.form.get("end_time")
 
             if not (full_name and email and activity and reservation_date and start_time and end_time):
-                flash("请完整填写表单。", "danger")
+                flash("Please complete all required fields.", "danger")
                 return render_template(
                     "book.html",
                     room=room,
@@ -131,13 +131,13 @@ def create_app() -> Flask:
                     max_date=max_date.isoformat(),
                 )
 
-            # 预约时段限制与基本合法性检查
+            # Booking window and basic validation
             try:
                 date_obj = datetime.strptime(reservation_date, "%Y-%m-%d").date()
                 start_t = datetime.strptime(start_time, "%H:%M").time()
                 end_t = datetime.strptime(end_time, "%H:%M").time()
             except ValueError:
-                flash("日期或时间格式不正确。", "danger")
+                flash("Invalid date or time format.", "danger")
                 return render_template(
                     "book.html",
                     room=room,
@@ -148,7 +148,7 @@ def create_app() -> Flask:
                 )
 
             if not (min_date <= date_obj <= max_date):
-                flash(f"仅可预约 {min_date} 至 {max_date} 之间的日期。", "danger")
+                flash(f"Only dates from {min_date} to {max_date} are allowed for booking.", "danger")
                 return render_template(
                     "book.html",
                     room=room,
@@ -159,7 +159,7 @@ def create_app() -> Flask:
                 )
 
             if not (allowed_time_start <= start_t < end_t <= allowed_time_end):
-                flash(f"预约时间需在 {book_start_str} - {book_end_str} 之间，且结束时间需晚于开始时间。", "danger")
+                flash(f"Time must be within {book_start_str} - {book_end_str}, and end time must be later than start time.", "danger")
                 return render_template(
                     "book.html",
                     room=room,
@@ -180,7 +180,7 @@ def create_app() -> Flask:
                 (room_id, reservation_date, start_time, end_time),
             )
             if cur.fetchone()["cnt"] > 0:
-                flash("该时间段已被预订。", "danger")
+                flash("The selected time slot is already booked.", "danger")
                 return render_template(
                     "book.html",
                     room=room,
@@ -207,7 +207,7 @@ def create_app() -> Flask:
             cnx.commit()
             cur.close()
             cnx.close()
-            flash("预订成功！", "success")
+            flash("Booking successful!", "success")
             return redirect(url_for("dashboard"))
 
         cur.close()
@@ -304,7 +304,7 @@ def create_app() -> Flask:
             cnx.commit()
             cur.close()
             cnx.close()
-            flash("教室已添加。", "success")
+            flash("Classroom created.", "success")
             return redirect(url_for("admin_panel"))
         return render_template("classroom_form.html", action="add", room=None)
 
@@ -318,7 +318,7 @@ def create_app() -> Flask:
         if not room:
             cur.close()
             cnx.close()
-            flash("教室不存在。", "warning")
+            flash("Classroom not found.", "warning")
             return redirect(url_for("admin_panel"))
         if request.method == "POST":
             name = request.form.get("name", "").strip()
@@ -335,7 +335,7 @@ def create_app() -> Flask:
             cur2.close()
             cur.close()
             cnx.close()
-            flash("教室已更新。", "success")
+            flash("Classroom updated.", "success")
             return redirect(url_for("admin_panel"))
         cur.close()
         cnx.close()
@@ -350,7 +350,7 @@ def create_app() -> Flask:
         cnx.commit()
         cur.close()
         cnx.close()
-        flash("教室已删除。", "info")
+        flash("Classroom deleted.", "info")
         return redirect(url_for("admin_panel"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -367,10 +367,10 @@ def create_app() -> Flask:
             if row and check_password_hash(row["password_hash"], password):
                 session["user_id"] = row["id"]
                 session["role"] = row["role"]
-                flash("登录成功。", "success")
+                flash("Signed in successfully.", "success")
                 next_url = request.args.get("next") or url_for("index")
                 return redirect(next_url)
-            flash("邮箱或密码错误。", "danger")
+            flash("Incorrect email or password.", "danger")
         return render_template("login.html")
 
     @app.route("/register", methods=["GET", "POST"])
@@ -381,7 +381,7 @@ def create_app() -> Flask:
             password = request.form.get("password", "")
             confirm = request.form.get("confirm", "")
             if not full_name or not email or not password or password != confirm:
-                flash("请检查输入，密码需一致。", "danger")
+                flash("Please check your input; passwords must match.", "danger")
                 return render_template("register.html")
             cnx = get_db_connection()
             cur = cnx.cursor()
@@ -393,20 +393,20 @@ def create_app() -> Flask:
                 cnx.commit()
             except Exception:
                 cnx.rollback()
-                flash("注册失败，邮箱可能已被使用。", "danger")
+                flash("Registration failed. The email may already be in use.", "danger")
                 cur.close()
                 cnx.close()
                 return render_template("register.html")
             cur.close()
             cnx.close()
-            flash("注册成功，请登录。", "success")
+            flash("Registration successful. Please sign in.", "success")
             return redirect(url_for("login"))
         return render_template("register.html")
 
     @app.route("/logout")
     def logout():
         session.clear()
-        flash("您已退出。", "info")
+        flash("You have signed out.", "info")
         return redirect(url_for("index"))
 
     return app

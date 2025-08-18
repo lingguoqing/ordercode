@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}注册{% endblock %}
+{% block title %}Register{% endblock %}
 {% block content %}
-<h1>注册</h1>
+<h1>Register</h1>
 <form method="post" class="form auth">
-    <label>全名<input name="full_name" required></label>
-    <label>电子邮件<input type="email" name="email" required></label>
-    <label>密码<input type="password" name="password" required></label>
-    <label>确认密码<input type="password" name="confirm" required></label>
-    <button class="btn" type="submit">注册</button>
+    <label>Full name<input name="full_name" required></label>
+    <label>Email<input type="email" name="email" required></label>
+    <label>Password<input type="password" name="password" required></label>
+    <label>Confirm password<input type="password" name="confirm" required></label>
+    <button class="btn" type="submit">Register</button>
 </form>
 {% endblock %}
 

@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}管理员仪表板{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-<h1>管理员仪表板</h1>
+<h1>Admin Dashboard</h1>
 
 <section>
-    <h2>管理教室</h2>
-    <p><a class="btn small" href="{{ url_for('add_classroom') }}">添加新教室</a></p>
+    <h2>Manage Classrooms</h2>
+    <p><a class="btn small" href="{{ url_for('add_classroom') }}">Add classroom</a></p>
     <table class="table">
         <thead>
         <tr>
-            <th>名称</th>
-            <th>建筑</th>
-            <th>容量</th>
-            <th>操作</th>
+            <th>Name</th>
+            <th>Building</th>
+            <th>Capacity</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -22,9 +22,9 @@
             <td>{{ r.building }}</td>
             <td>{{ r.capacity }}</td>
             <td>
-                <a class="btn small" href="{{ url_for('edit_classroom', room_id=r.id) }}">编辑</a>
+                <a class="btn small" href="{{ url_for('edit_classroom', room_id=r.id) }}">Edit</a>
                 <form style="display:inline" method="post" action="{{ url_for('delete_classroom', room_id=r.id) }}">
-                    <button class="btn danger small" type="submit">删除</button>
+                    <button class="btn danger small" type="submit">Delete</button>
                 </form>
             </td>
         </tr>
@@ -34,15 +34,15 @@
 </section>
 
 <section>
-    <h2>查看预订</h2>
+    <h2>Reservations</h2>
     <table class="table">
         <thead>
         <tr>
-            <th>用户</th>
-            <th>教室</th>
-            <th>日期</th>
-            <th>时间</th>
-            <th>状态</th>
+            <th>User</th>
+            <th>Classroom</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
         </tr>
         </thead>
         <tbody>
@@ -56,7 +56,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="5">暂无预订。</td>
+            <td colspan="5">No reservations.</td>
         </tr>
         {% endfor %}
         </tbody>

@@ -56,10 +56,10 @@ CREATE TABLE IF NOT EXISTS reservations (
 -- Seed featured classrooms (optional demo data)
 INSERT INTO classrooms (name, building, location, capacity, description, is_featured)
 VALUES
-  ('A 栋 101', 'A 栋', 'A 栋 101 室', 40, '多媒体教室，适合讲座。', 1),
-  ('B 栋 202', 'B 栋', 'B 栋 202 室', 30, '计算机房，含 30 台电脑。', 1),
-  ('C 栋 303', 'C 栋', 'C 栋 303 室', 80, '大型报告厅。', 1),
-  ('D 栋 404', 'D 栋', 'D 栋 404 室', 20, '小型研讨室。', 0)
+  ('Building A 101', 'Building A', 'Building A Room 101', 40, 'Multimedia classroom, suitable for lectures.', 1),
+  ('Building B 202', 'Building B', 'Building B Room 202', 30, 'Computer lab with 30 PCs.', 1),
+  ('Building C 303', 'Building C', 'Building C Room 303', 80, 'Large auditorium.', 1),
+  ('Building D 404', 'Building D', 'Building D Room 404', 20, 'Small seminar room.', 0)
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 -- Recent Events / Activities
@@ -73,8 +73,8 @@ CREATE TABLE IF NOT EXISTS events (
 
 INSERT INTO events (title, sort_order)
 VALUES
-  ('Web 应用程序开发讲座', 1),
-  ('数据结构与算法研讨', 2)
+  ('Web Application Development Talk', 1),
+  ('Data Structures & Algorithms Seminar', 2)
 ON DUPLICATE KEY UPDATE title=VALUES(title), sort_order=VALUES(sort_order);
 
 

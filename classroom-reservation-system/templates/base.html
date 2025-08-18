@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}教室预订{% endblock %}</title>
+    <title>{% block title %}Classroom Reservation{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -11,16 +11,16 @@
 <body>
 <header class="site-header">
     <div class="container header-inner">
-        <a class="logo" href="{{ url_for('index') }}">校园教室预订</a>
+        <a class="logo" href="{{ url_for('index') }}">Campus Classroom Reservation</a>
         <nav class="nav">
-            <a href="{{ url_for('index') }}">首页</a>
-            <a href="{{ url_for('classrooms') }}">教室</a>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('classrooms') }}">Classrooms</a>
             {% if current_user %}
-                <a href="{{ url_for('dashboard') }}">预约</a>
-                {% if current_user.role == 'admin' %}<a href="{{ url_for('admin_panel') }}">管理员</a>{% endif %}
-                <a href="{{ url_for('logout') }}">退出</a>
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                {% if current_user.role == 'admin' %}<a href="{{ url_for('admin_panel') }}">Admin</a>{% endif %}
+                <a href="{{ url_for('logout') }}">Sign out</a>
             {% else %}
-                <a href="{{ url_for('login') }}">登录</a>
+                <a href="{{ url_for('login') }}">Sign in</a>
             {% endif %}
         </nav>
     </div>
@@ -42,7 +42,7 @@
 </main>
 
 <footer class="site-footer">
-    <div class="container">© 校园名称 {{ year_now }}</div>
+    <div class="container">© Campus {{ year_now }}</div>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     {% block page_scripts %}{% endblock %}
   </footer>

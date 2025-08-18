@@ -1,32 +1,32 @@
 {% extends 'base.html' %}
-{% block title %}首页 - 教室预订{% endblock %}
+{% block title %}Home - Classroom Reservation{% endblock %}
 {% block content %}
 <section class="hero">
-  <h1>在线预订您心仪的教室！</h1>
-  <p>简化流程，快速完成预订。</p>
-  <p><a class="btn" href="{{ url_for('classrooms') }}">查看课堂</a></p>
+  <h1>Reserve your favorite classroom online!</h1>
+  <p>Streamlined process, fast booking.</p>
+  <p><a class="btn" href="{{ url_for('classrooms') }}">Browse classrooms</a></p>
 </section>
 
 <section>
-  <h2>特色教室</h2>
+  <h2>Featured Classrooms</h2>
   <div class="card-grid">
     {% for room in featured %}
       <div class="card">
         <h3>{{ room.name }}</h3>
-        <p>建筑：{{ room.building }} | 容量：{{ room.capacity }}</p>
-        <p><a class="btn small" href="{{ url_for('classroom_detail', room_id=room.id) }}">查看详情</a></p>
+        <p>Building: {{ room.building }} | Capacity: {{ room.capacity }}</p>
+        <p><a class="btn small" href="{{ url_for('classroom_detail', room_id=room.id) }}">Details</a></p>
       </div>
     {% else %}
-      <p>暂无推荐教室。</p>
+      <p>No featured classrooms.</p>
     {% endfor %}
   </div>
   <hr/>
-  <h2>近期活动</h2>
+  <h2>Recent Events</h2>
   <ul>
     {% for ev in events %}
       <li>{{ ev }}</li>
     {% else %}
-      <li>暂无活动。</li>
+      <li>No events.</li>
     {% endfor %}
   </ul>
 </section>

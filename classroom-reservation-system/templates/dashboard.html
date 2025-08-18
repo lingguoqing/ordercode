@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}您的仪表板{% endblock %}
+{% block title %}Your Dashboard{% endblock %}
 {% block content %}
-<h1>您的仪表板</h1>
-<h2>即将到来的预订</h2>
+<h1>Your Dashboard</h1>
+<h2>Upcoming Reservations</h2>
 <table class="table">
   <thead>
-    <tr><th>用户</th><th>教室</th><th>日期</th><th>时间</th><th>状态</th><th>操作</th></tr>
+    <tr><th>User</th><th>Classroom</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr>
   </thead>
   <tbody>
   {% for b in bookings %}
@@ -17,12 +17,12 @@
       <td class="status">{{ b.status }}</td>
       <td>
         {% if b.status == 'booked' %}
-          <button class="btn small cancel-btn">取消</button>
+          <button class="btn small cancel-btn">Cancel</button>
         {% endif %}
       </td>
     </tr>
   {% else %}
-    <tr><td colspan="5">暂无预订。</td></tr>
+    <tr><td colspan="5">No reservations.</td></tr>
   {% endfor %}
   </tbody>
 </table>

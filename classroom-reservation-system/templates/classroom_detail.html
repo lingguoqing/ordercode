@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}教室详情{% endblock %}
+{% block title %}Classroom Details{% endblock %}
 {% block content %}
 <h1>{{ room.name }}</h1>
-<p>建筑名称和位置：{{ room.building }}{% if room.location %}，{{ room.location }}{% endif %}</p>
-<p>容量：{{ room.capacity }}</p>
+<p>Building and location: {{ room.building }}{% if room.location %}, {{ room.location }}{% endif %}</p>
+<p>Capacity: {{ room.capacity }}</p>
 <div class="actions">
-  <a class="btn" href="{{ url_for('book', room_id=room.id) }}">立即预订</a>
-  <a class="btn secondary" href="{{ url_for('classrooms') }}">返回教室</a>
+  <a class="btn" href="{{ url_for('book', room_id=room.id) }}">Book now</a>
+  <a class="btn secondary" href="{{ url_for('classrooms') }}">Back to Classrooms</a>
   </div>
 {% endblock %}
 

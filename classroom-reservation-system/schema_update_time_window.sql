@@ -1,4 +1,4 @@
--- 为教室添加每日可预约时间窗口（开放时间/结束时间）
+-- Add per-classroom daily booking window (open/close time)
 USE classroom_reservation;
 
 ALTER TABLE classrooms
