@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}{{ '添加新教室' if action == 'add' else '编辑教室' }}{% endblock %}
+{% block content %}
+<h1>{{ '添加新教室' if action == 'add' else '编辑教室' }}</h1>
+<form method="post" class="form">
+  <label>教室名称<input name="name" required value="{{ room.name if room }}"></label>
+  <label>建筑名称<input name="building" required value="{{ room.building if room }}"></label>
+  <label>容纳人数<input type="number" min="1" name="capacity" required value="{{ room.capacity if room }}"></label>
+  <label>描述<textarea name="description">{{ room.description if room }}</textarea></label>
+  <label><input type="checkbox" name="is_featured" {% if room and room.is_featured %}checked{% endif %}> 设为特色教室</label>
+  <div class="actions">
+    <button class="btn" type="submit">保存</button>
+    <a class="btn secondary" href="{{ url_for('admin_panel') }}">取消</a>
+  </div>
+</form>
+{% endblock %}
+
+

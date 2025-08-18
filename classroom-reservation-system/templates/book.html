@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}预订教室{% endblock %}
+{% block content %}
+<h1>预订教室</h1>
+
+<section class="info-card">
+  <div class="info-title">{{ room.name }}</div>
+  <div class="info-meta">{{ room.building }} · 容量 {{ room.capacity }}</div>
+</section>
+
+<form method="post" class="form form-card book-form">
+  <div class="book-grid">
+    <div class="book-col">
+      <h3 class="section-title">联系信息</h3>
+      <div class="field"><label>全名</label><input name="full_name" required value="{{ current_user.full_name if current_user }}"></div>
+      <div class="field"><label>电子邮件</label><input type="email" name="email" required value="{{ current_user.email if current_user }}"></div>
+      <div class="field"><label>电话号码</label><input name="phone" placeholder="可选"></div>
+      <div class="field"><label>活动</label><input name="activity" placeholder="如：Web 应用程序开发讲座" required></div>
+    </div>
+
+    <div class="book-col">
+      <h3 class="section-title">时间安排</h3>
+      <div class="grid-3 compact">
+        <div class="field"><label>日期</label><input type="date" name="date" required min="{{ min_date }}" max="{{ max_date }}"></div>
+        <div class="field"><label>开始时间</label><input type="time" name="start_time" required min="{{ allowed_time_start }}" max="{{ allowed_time_end }}"></div>
+        <div class="field"><label>结束时间</label><input type="time" name="end_time" required min="{{ allowed_time_start }}" max="{{ allowed_time_end }}"></div>
+      </div>
+      <p class="hint">提示：仅允许在 {{ allowed_time_start }} 至 {{ allowed_time_end }} 之间预约，日期范围：{{ min_date }} 至 {{ max_date }}。请选择同一天的时间段，避免与他人预约重叠。</p>
+    </div>
+  </div>
+
+  <div class="submit-bar">
+    <button class="btn" type="submit">确认</button>
+  </div>
+</form>
+{% endblock %}
+
+

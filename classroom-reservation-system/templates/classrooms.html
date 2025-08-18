@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}可用教室{% endblock %}
+{% block content %}
+<h1>可用教室</h1>
+<div class="room-list">
+  {% for r in rooms %}
+    <div class="room-item">
+      <div class="room-info">
+        <div class="room-name">{{ r.name }}</div>
+        <div class="room-meta">建筑：{{ r.building }} · 容量：{{ r.capacity }}</div>
+      </div>
+      <div class="room-actions">
+        <a class="btn small" href="{{ url_for('classroom_detail', room_id=r.id) }}">立即预订</a>
+      </div>
+    </div>
+  {% else %}
+    <p>暂无教室。</p>
+  {% endfor %}
+  </div>
+{% endblock %}
+
+

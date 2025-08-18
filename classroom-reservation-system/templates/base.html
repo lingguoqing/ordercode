@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}教室预订{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+<header class="site-header">
+    <div class="container header-inner">
+        <a class="logo" href="{{ url_for('index') }}">校园教室预订</a>
+        <nav class="nav">
+            <a href="{{ url_for('index') }}">首页</a>
+            <a href="{{ url_for('classrooms') }}">教室</a>
+            {% if current_user %}
+                <a href="{{ url_for('dashboard') }}">预约</a>
+                {% if current_user.role == 'admin' %}<a href="{{ url_for('admin_panel') }}">管理员</a>{% endif %}
+                <a href="{{ url_for('logout') }}">退出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">登录</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-list">
+          {% for category, message in messages %}
+            <li class="flash {{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+    <div class="spacer"></div>
+    <div class="spacer"></div>
+</main>
+
+<footer class="site-footer">
+    <div class="container">© 校园名称 {{ year_now }}</div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    {% block page_scripts %}{% endblock %}
+  </footer>
+</body>
+</html>
+
+

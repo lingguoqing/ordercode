@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}您的仪表板{% endblock %}
+{% block content %}
+<h1>您的仪表板</h1>
+<h2>即将到来的预订</h2>
+<table class="table">
+  <thead>
+    <tr><th>用户</th><th>教室</th><th>日期</th><th>时间</th><th>状态</th><th>操作</th></tr>
+  </thead>
+  <tbody>
+  {% for b in bookings %}
+    <tr data-id="{{ b.id }}">
+      <td>{{ b.user_name }}</td>
+      <td>{{ b.classroom_name }}</td>
+      <td>{{ b.reservation_date }}</td>
+      <td>{{ b.start_time }} - {{ b.end_time }}</td>
+      <td class="status">{{ b.status }}</td>
+      <td>
+        {% if b.status == 'booked' %}
+          <button class="btn small cancel-btn">取消</button>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">暂无预订。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+{% block page_scripts %}
+<script>
+$(function(){
+  $('.cancel-btn').on('click', function(){
+    const tr = $(this).closest('tr');
+    const id = tr.data('id');
+    $.post(`/api/reservations/${id}/cancel`, function(resp){
+      if(resp.ok){
+        tr.find('.status').text('cancelled');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+
